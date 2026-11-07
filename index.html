@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* 版面：手機單欄。上方時鐘與兩顆打卡鍵，下方分頁（打卡／補登請假／我的紀錄／管理） */
+/* 版面：手機單欄。下方分頁：打卡／申請／排班／我的／管理 */
 :root{
   --bg:#f2f4f1; --surface:#ffffff; --ink:#1c2420; --muted:#5d6a64; --line:#d7ddd8;
   --in:#2d6a53; --in-soft:#e0eee7; --out:#9a4a2b; --out-soft:#f6e5dc;
@@ -26,19 +26,22 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-siz
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 [hidden]{display:none!important}
-.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.view{display:flex;flex-direction:column;gap:18px}
 header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 h1{font-size:1.25rem;margin:0}
 h2{font-size:1.02rem;margin:0 0 8px}
+h3{font-size:.95rem;margin:0}
 .muted{color:var(--muted)} .small{font-size:.85rem}
 button{font:inherit;cursor:pointer}
 .link{background:none;border:0;color:var(--muted);text-decoration:underline;padding:0}
 :focus-visible{outline:2px solid var(--in);outline-offset:2px}
 label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
-input,select,textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+input,select,textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);min-width:0}
 textarea{min-height:76px;resize:vertical}
-.field{display:flex;flex-direction:column}
+.field{display:flex;flex-direction:column;min-width:0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:10px;padding:11px 16px;font-weight:500}
 .btn.ghost{background:transparent;color:var(--ink)}
@@ -50,8 +53,8 @@ textarea{min-height:76px;resize:vertical}
 .pbtn small{font-weight:400;font-size:.8rem;opacity:.9}
 .pbtn.in{background:var(--in)} .pbtn.out{background:var(--out)}
 .pbtn:disabled{opacity:.5;cursor:default}
-.msg{min-height:1.4em;text-align:center;font-size:.92rem}
-.msg.ok{color:var(--in)} .msg.err{color:var(--bad)}
+.msg{min-height:1.4em;text-align:center;font-size:.92rem;white-space:pre-line}
+.msg.ok{color:var(--in)} .msg.err{color:var(--bad)} .msg.warn{color:var(--warn)}
 .list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .row{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
 .row:first-child{border-top:0}
@@ -61,21 +64,28 @@ textarea{min-height:76px;resize:vertical}
 .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.bad{background:var(--bad-soft);color:var(--bad)}
 .t{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .note{color:var(--muted);font-size:.86rem;min-width:0;overflow-wrap:anywhere}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .stat b{display:block;font-family:var(--font-num);font-size:1.35rem;font-variant-numeric:tabular-nums}
 .stat span{font-size:.8rem;color:var(--muted)}
 .stat.alert b{color:var(--bad)}
+.bal{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.bal .item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.bal .big{font-family:var(--font-num);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums}
+.bal .big small{font-family:var(--font-body);font-size:.85rem;font-weight:400;color:var(--muted)}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--in)}
+.meter.over i{background:var(--bad)}
 .tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:640px}
 th,td{padding:8px 10px;text-align:left;border-top:1px solid var(--line);vertical-align:top;white-space:nowrap}
 td:last-child,td.free{white-space:normal;min-width:12em}
-th{border-top:0;color:var(--muted);font-weight:500;font-size:.78rem;white-space:nowrap}
+th{border-top:0;color:var(--muted);font-weight:500;font-size:.78rem}
 td.n{font-family:var(--font-num);font-variant-numeric:tabular-nums;text-align:right}
 td .alert{color:var(--bad);font-weight:600}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;
   padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);z-index:5}
-nav.tabs button{flex:1;background:none;border:0;padding:12px 4px;color:var(--muted);font-size:.9rem;border-top:2px solid transparent}
+nav.tabs button{flex:1;background:none;border:0;padding:12px 2px;color:var(--muted);font-size:.9rem;border-top:2px solid transparent}
 nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top-color:var(--ink)}
 .overlay{position:fixed;inset:0;background:rgba(10,14,12,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10;padding:16px}
 .sheet{background:var(--surface);color:var(--ink);border-radius:16px;max-width:520px;width:100%;padding:18px;display:flex;flex-direction:column;gap:12px;max-height:90vh;overflow:auto;margin-bottom:env(safe-area-inset-bottom,0px)}
@@ -84,10 +94,22 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
 .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .seg{display:flex;gap:6px}
 .seg button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px}
-.seg button[aria-pressed="true"]{border-color:var(--ink);font-weight:700}
+.seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:700}
 .login{max-width:380px;margin:8vh auto 0}
 .daylist .row{grid-template-columns:7.5em 1fr}
-@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+.sched{display:flex;flex-direction:column;gap:0}
+.sday{display:grid;grid-template-columns:7.2em 1fr;gap:10px;align-items:start;padding:10px 12px;border-top:1px solid var(--line)}
+.sday:first-child{border-top:0}
+.sday .d{font-size:.9rem;padding-top:9px}
+.sday .d small{display:block;color:var(--out);font-size:.75rem}
+.sday .ctl{display:grid;grid-template-columns:1fr 1.6fr 1fr 1fr .8fr;gap:6px}
+.sday .ctl select,.sday .ctl input{padding:8px 6px;font-size:.88rem}
+.sday.weekstart{border-top:2px solid var(--muted)}
+.sday.bad{background:var(--bad-soft)}
+.issues{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;font-size:.9rem}
+.issues li.error{color:var(--bad)} .issues li.warn{color:var(--warn)}
+.periodbar{display:flex;align-items:center;gap:8px;justify-content:space-between}
+@media (max-width:440px){.grid2,.grid3{grid-template-columns:1fr}.sday{grid-template-columns:1fr}.sday .d{padding-top:0}.sday .ctl{grid-template-columns:1fr 1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -98,7 +120,6 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
 
 <div class="wrap">
 
-  <!-- 登入 -->
   <section id="v-login" class="login card" hidden>
     <h1>陽明打卡</h1>
     <div class="field"><label for="acc">帳號</label><input id="acc" autocomplete="username"></div>
@@ -107,14 +128,14 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
     <div class="msg" id="login-msg"></div>
   </section>
 
-  <div id="app" hidden>
+  <div id="app" class="wrap" style="max-width:none" hidden>
     <header>
       <h1>陽明打卡</h1>
       <span class="small muted"><span id="who"></span>　<button class="link" id="btn-logout">登出</button></span>
     </header>
 
     <!-- 打卡 -->
-    <section id="v-punch" class="wrap" style="max-width:none">
+    <section id="v-punch" class="view">
       <div class="clock">
         <div class="muted" id="today">&nbsp;</div>
         <div class="time" id="now">--:--:--</div>
@@ -132,23 +153,17 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
       <p class="small muted">打卡時間以伺服器時間為準。定位只在你按下打卡時讀取一次。</p>
     </section>
 
-    <!-- 補登／請假 -->
-    <section id="v-forms" class="wrap" style="max-width:none" hidden>
-      <div class="card">
-        <h2>忘記打卡補登</h2>
-        <div class="seg" id="mk-type"><button aria-pressed="true" data-v="上班">上班</button><button aria-pressed="false" data-v="下班">下班</button></div>
-        <div class="grid2">
-          <div class="field"><label for="mk-date">日期</label><input type="date" id="mk-date"></div>
-          <div class="field"><label for="mk-time">實際時間</label><input type="time" id="mk-time"></div>
-        </div>
-        <div class="field"><label for="mk-reason">原因（必填）</label><textarea id="mk-reason" maxlength="200" placeholder="例如：手機沒電、到院後直接進會談室"></textarea></div>
-        <p class="small muted">補登的紀錄會在主管報表中特別標示。</p>
-        <button class="btn" id="btn-makeup">送出補登</button>
-        <div class="msg" id="mk-msg"></div>
+    <!-- 申請 -->
+    <section id="v-forms" class="view" hidden>
+      <div class="bal" id="bal-forms"></div>
+      <div class="seg" id="form-seg">
+        <button aria-pressed="true" data-f="leave">請假</button>
+        <button aria-pressed="false" data-f="ot">加班</button>
+        <button aria-pressed="false" data-f="mk">忘打卡</button>
       </div>
 
-      <div class="card">
-        <h2>請假登記</h2>
+      <div class="card" id="f-leave">
+        <h2>請假</h2>
         <div class="field"><label for="lv-kind">假別</label><select id="lv-kind"></select></div>
         <div class="grid2">
           <div class="field"><label for="lv-from">開始日期</label><input type="date" id="lv-from"></div>
@@ -160,17 +175,60 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
           <div class="field"><label for="lv-end">結束時間</label><input type="time" id="lv-end" value="12:00"></div>
         </div>
         <div class="field"><label for="lv-reason">事由（選填）</label><input id="lv-reason" maxlength="200"></div>
-        <p class="small muted">跨日請假會自動略過休息日與國定假日。時數會扣除午休。</p>
+        <p class="small muted">跨日請假會自動略過非上班日。時數扣除午休。特休與補休會先檢查餘額。</p>
         <button class="btn" id="btn-leave">送出請假</button>
         <div class="msg" id="lv-msg"></div>
       </div>
+
+      <div class="card" id="f-ot" hidden>
+        <h2>加班</h2>
+        <div class="field"><label for="ot-date">加班日期</label><input type="date" id="ot-date"></div>
+        <div class="grid3">
+          <div class="field"><label for="ot-start">開始</label><input type="time" id="ot-start" value="17:00"></div>
+          <div class="field"><label for="ot-end">結束</label><input type="time" id="ot-end" value="19:00"></div>
+          <div class="field"><label for="ot-brk">休息（分）</label><input type="number" id="ot-brk" min="0" step="5" value="0" inputmode="numeric"></div>
+        </div>
+        <div class="field"><label for="ot-reason">加班事由（必填）</label><textarea id="ot-reason" maxlength="200" placeholder="例如：個案危機處理、團體延長"></textarea></div>
+        <p class="small muted">加班時數 1:1 自動計入補休，當年度 12/31 前有效。結束時間早於開始時間會視為跨夜。</p>
+        <button class="btn" id="btn-ot">送出加班</button>
+        <div class="msg" id="ot-msg"></div>
+      </div>
+
+      <div class="card" id="f-mk" hidden>
+        <h2>忘記打卡補登</h2>
+        <div class="seg" id="mk-type"><button aria-pressed="true" data-v="上班">上班</button><button aria-pressed="false" data-v="下班">下班</button></div>
+        <div class="grid2">
+          <div class="field"><label for="mk-date">日期</label><input type="date" id="mk-date"></div>
+          <div class="field"><label for="mk-time">實際時間</label><input type="time" id="mk-time"></div>
+        </div>
+        <div class="field"><label for="mk-reason">原因（必填）</label><textarea id="mk-reason" maxlength="200" placeholder="例如：手機沒電、到院後直接進會談室"></textarea></div>
+        <p class="small muted">補登的紀錄會在主管報表中特別標示。</p>
+        <button class="btn" id="btn-makeup">送出補登</button>
+        <div class="msg" id="mk-msg"></div>
+      </div>
     </section>
 
-    <!-- 我的紀錄 -->
-    <section id="v-mine" class="wrap" style="max-width:none" hidden>
+    <!-- 排班 -->
+    <section id="v-sched" class="view" hidden>
+      <div class="periodbar">
+        <button class="btn ghost" id="sc-prev" aria-label="上一期">‹ 上一期</button>
+        <div style="text-align:center"><b id="sc-range"></b><div class="small muted">4 週變形工時一期</div></div>
+        <button class="btn ghost" id="sc-next" aria-label="下一期">下一期 ›</button>
+      </div>
+      <div class="card" id="sc-result"></div>
+      <div class="list sched" id="sc-days"><div class="empty">載入中…</div></div>
+      <button class="btn" id="sc-save">儲存並檢核</button>
+      <div class="msg" id="sc-msg"></div>
+      <p class="small muted">檢核項目：每日正常工時不超過 10 小時、4 週合計不超過 160 小時、每 2 週至少 2 天例假、4 週例假加休息日至少 8 天、兩班間隔至少 11 小時、工作 4 小時應有 30 分鐘休息。檢核只是輔助，最終以勞資會議決議與主管確認為準。</p>
+    </section>
+
+    <!-- 我的 -->
+    <section id="v-mine" class="view" hidden>
+      <div><h2>假別餘額</h2><div class="bal" id="bal-mine"></div></div>
       <div class="field" style="max-width:220px"><label for="my-month">月份</label><input type="month" id="my-month"></div>
       <div class="stats" id="my-stats"></div>
       <div><h2>每日狀況</h2><div class="list daylist" id="my-days"><div class="empty">載入中…</div></div></div>
+      <div><h2>本月加班</h2><div class="list" id="my-ot"></div></div>
       <div class="card">
         <h2>變更密碼</h2>
         <div class="grid2">
@@ -183,7 +241,7 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
     </section>
 
     <!-- 管理 -->
-    <section id="v-admin" class="wrap" style="max-width:none" hidden>
+    <section id="v-admin" class="view" hidden>
       <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
         <div class="field" style="flex:0 1 220px"><label for="ad-month">月份</label><input type="month" id="ad-month"></div>
         <button class="btn ghost" id="btn-csv">匯出 CSV</button>
@@ -191,35 +249,45 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
       <div>
         <h2>月報總表</h2>
         <div class="tablebox"><table>
-          <thead><tr><th>姓名</th><th>院區</th><th>應出勤</th><th>準時</th><th>遲到</th><th>早退</th><th>請假</th><th>缺卡</th><th>範圍外</th><th>範圍外不符</th><th>補登</th></tr></thead>
-          <tbody id="ad-sum"><tr><td colspan="11" class="muted">載入中…</td></tr></tbody>
+          <thead><tr><th>姓名</th><th>院區</th><th>應出勤</th><th>準時</th><th>遲到</th><th>早退</th><th>請假</th><th>缺卡</th><th>範圍外</th><th>範圍外不符</th><th>補登</th><th>加班</th></tr></thead>
+          <tbody id="ad-sum"><tr><td colspan="12" class="muted">載入中…</td></tr></tbody>
         </table></div>
-        <p class="small muted">遲到：第一次上班卡晚於上班時間（8:01 起算）。範圍外：在院區 200 公尺外打卡；「不符」指上班晚於應到時間，或下班早於下班時間且不符合直接下班。</p>
+        <p class="small muted">遲到：第一次上班卡晚於上班時間（8:01 起算）。範圍外打卡會把院區與訪視地點之間的交通時間算作工作時間：上班「打卡時間－交通」晚於上班時間才算遲到，下班「打卡時間＋交通」早於下班時間才算早退，遲到早退分鐘數都已扣掉交通時間。</p>
       </div>
+      <div><h2>假別餘額</h2><div class="tablebox"><table>
+        <thead><tr><th>姓名</th><th>到職日</th><th>特休年度</th><th>特休剩餘</th><th>補休剩餘</th><th>去年補休未休</th><th>事假已請</th><th>病假已請</th></tr></thead>
+        <tbody id="ad-bal"></tbody></table></div>
+        <p class="small muted">「去年補休未休」依勞基法第 32-1 條應折發工資。特休年度結束未休完的時數，依第 38 條也應發給工資。</p></div>
+      <div id="ad-sched-wrap"><h2>排班檢核（本期）</h2><div class="tablebox"><table>
+        <thead><tr><th>姓名</th><th>期間</th><th>結果</th><th>4 週工時</th><th>問題</th></tr></thead>
+        <tbody id="ad-sched"></tbody></table></div></div>
       <div><h2>需注意的日子</h2><div class="tablebox"><table>
         <thead><tr><th>日期</th><th>姓名</th><th>上班</th><th>下班</th><th>狀況</th></tr></thead>
         <tbody id="ad-flags"></tbody></table></div></div>
-      <div><h2>補登申請</h2><div class="tablebox"><table>
-        <thead><tr><th>日期</th><th>姓名</th><th>類型</th><th>時間</th><th>原因</th><th>送出時間</th></tr></thead>
-        <tbody id="ad-makeup"></tbody></table></div></div>
-      <div><h2>範圍外打卡</h2><div class="tablebox"><table>
-        <thead><tr><th>日期</th><th>姓名</th><th>類型</th><th>時間</th><th>距最近院區</th><th>回程</th><th>判定</th><th>事由</th></tr></thead>
-        <tbody id="ad-outside"></tbody></table></div></div>
+      <div><h2>加班登記</h2><div class="tablebox"><table>
+        <thead><tr><th>日期</th><th>姓名</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
+        <tbody id="ad-ot"></tbody></table></div></div>
       <div><h2>請假登記</h2><div class="tablebox"><table>
         <thead><tr><th>日期</th><th>姓名</th><th>假別</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
         <tbody id="ad-leave"></tbody></table></div></div>
+      <div><h2>忘打卡補登</h2><div class="tablebox"><table>
+        <thead><tr><th>日期</th><th>姓名</th><th>類型</th><th>時間</th><th>原因</th><th>送出時間</th></tr></thead>
+        <tbody id="ad-makeup"></tbody></table></div></div>
+      <div><h2>範圍外打卡</h2><div class="tablebox"><table>
+        <thead><tr><th>日期</th><th>姓名</th><th>類型</th><th>時間</th><th>直線距離</th><th>交通</th><th>判定</th><th>事由</th></tr></thead>
+        <tbody id="ad-outside"></tbody></table></div></div>
     </section>
   </div>
 </div>
 
 <nav class="tabs" id="tabs" hidden>
   <button data-v="punch" aria-current="true">打卡</button>
-  <button data-v="forms">補登／請假</button>
-  <button data-v="mine">我的紀錄</button>
+  <button data-v="forms">申請</button>
+  <button data-v="sched" id="tab-sched" hidden>排班</button>
+  <button data-v="mine">我的</button>
   <button data-v="admin" id="tab-admin" hidden>管理</button>
 </nav>
 
-<!-- 範圍外打卡視窗 -->
 <div class="overlay" id="ov" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ov-title">
     <h2 id="ov-title">不在打卡範圍內</h2>
@@ -238,30 +306,29 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
     get(k){ try { return localStorage.getItem(k); } catch { return null; } },
     set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} },
   };
-  let token = store.get("pt_token"), boot = null, pendingType = null, pendingLoc = null, lastReport = null;
+  let token = store.get("pt_token"), boot = null, pendingType = null, pendingLoc = null, lastReport = null, sched = null;
 
   const parts = d => Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(d).map(p=>[p.type,p.value]));
   const todayStr = () => { const p = parts(new Date()); return `${p.year}-${p.month}-${p.day}`; };
   const WD = ["日","一","二","三","四","五","六"];
-  const roc = k => { const [y,m,d] = k.split("-").map(Number); return `${y-1911}/${m}/${d}（${WD[new Date(Date.UTC(y,m-1,d)).getUTCDay()]}）`; };
+  const wd = k => { const [y,m,d] = k.split("-").map(Number); return new Date(Date.UTC(y,m-1,d)).getUTCDay(); };
+  const roc = k => { const [y,m,d] = k.split("-").map(Number); return `${y-1911}/${m}/${d}（${WD[wd(k)]}）`; };
+  const md = k => { const [,m,d] = k.split("-").map(Number); return `${m}/${d}`; };
+  const addDays = (s,n) => { const [y,m,d] = s.split("-").map(Number); return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10); };
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const msg = (id, text, cls="") => { const el = $(id); el.textContent = text; el.className = "msg " + cls; };
+  const hd = (h, per) => { per = per || 8; const d = h / per; return Math.abs(d - Math.round(d)) < 0.01 ? `${Math.round(d)} 天` : `${Math.round(d*10)/10} 天`; };
 
   async function api(action, data = {}) {
     if (API_URL.startsWith("PASTE")) throw new Error("尚未設定 API 網址，請管理者完成部署設定");
     let res;
-    try {
-      res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action, token, ...data }) });
-    } catch { throw new Error("連不上伺服器，請檢查網路"); }
+    try { res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action, token, ...data }) }); }
+    catch { throw new Error("連不上伺服器，請檢查網路"); }
     const out = await res.json().catch(() => ({ ok:false, error:"伺服器回應格式錯誤" }));
-    if (!out.ok) {
-      if (out.code === "AUTH") { logout(); }
-      const e = new Error(out.error || "發生錯誤"); e.code = out.code; throw e;
-    }
+    if (!out.ok) { if (out.code === "AUTH") logout(); const e = new Error(out.error || "發生錯誤"); e.code = out.code; throw e; }
     return out;
   }
 
-  // ---- 時鐘 ----
   setInterval(tick, 1000); tick();
   function tick(){ const p = parts(new Date()); $("now").textContent = `${p.hour}:${p.minute}:${p.second}`; $("today").textContent = roc(todayStr()); }
 
@@ -282,29 +349,59 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
     if (!token) { logout(); return; }
     try { boot = await api("bootstrap"); }
     catch (e) { if (e.code !== "AUTH") { $("v-login").hidden = false; msg("login-msg", e.message, "err"); } return; }
+    if (boot.token) { token = boot.token; store.set("pt_token", token); }  // 自動續期，保持登入
     $("v-login").hidden = true; $("app").hidden = false; $("tabs").hidden = false;
-    const p = boot.profile;
+    const p = boot.profile, plan = boot.today.plan;
     $("who").textContent = p.name;
-    $("shift").textContent = `上班時間 ${p.start}–${p.end}（午休 ${p.lunchStart}–${p.lunchEnd}）`;
+    $("shift").textContent = p.isShift
+      ? (plan.work ? `今日班表 ${plan.start}–${plan.end}` : `今日：${plan.kind}`)
+      : `上班時間 ${p.start}–${p.end}（午休 ${p.lunchStart}–${p.lunchEnd}）`;
     $("tab-admin").hidden = !p.isManager;
+    $("tab-sched").hidden = !p.isShift;
     $("lv-kind").innerHTML = boot.leaveKinds.map(k => `<option>${esc(k)}</option>`).join("");
     const t = todayStr();
-    $("mk-date").value = t; $("mk-date").max = t; $("lv-from").value = t; $("lv-to").value = t;
+    ["mk-date","ot-date"].forEach(id => { $(id).value = t; $(id).max = t; });
+    $("lv-from").value = $("lv-to").value = t;
     $("my-month").value = $("ad-month").value = t.slice(0,7);
     renderToday(boot.today.punches);
+    renderBalances(boot.balances);
     show(store.get("pt_tab") || "punch");
   }
 
   // ---- 分頁 ----
   document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => show(b.dataset.v));
   function show(v) {
-    if (v === "admin" && !(boot && boot.profile.isManager)) v = "punch";
-    ["punch","forms","mine","admin"].forEach(x => $("v-"+x).hidden = x !== v);
+    if (v === "admin" && !boot.profile.isManager) v = "punch";
+    if (v === "sched" && !boot.profile.isShift) v = "punch";
+    ["punch","forms","sched","mine","admin"].forEach(x => $("v-"+x).hidden = x !== v);
     document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.v === v));
     store.set("pt_tab", v);
     if (v === "mine") loadMine();
     if (v === "admin") loadAdmin();
+    if (v === "sched") loadSched(sched ? sched.periodStart : todayStr());
     window.scrollTo(0,0);
+  }
+
+  // ---- 假別餘額 ----
+  function renderBalances(b) {
+    if (!b) return;
+    const a = b.annual, c = b.comp, per = b.dayHours;
+    const meter = (used, total) => { const pct = total ? Math.min(100, used/total*100) : 0; return `<div class="meter${used>total?" over":""}"><i style="width:${pct}%"></i></div>`; };
+    let h = "";
+    if (a && !a.none) h += `<div class="item"><span class="small muted">特休（${esc(a.seniority)}）</span>
+      <span class="big">${a.remainingHours}<small> 小時（${hd(a.remainingHours, per)}）</small></span>
+      <span class="small muted">共 ${a.days} 天，已休 ${a.usedHours} 小時。${md(a.start)}–${md(addDays(a.end,-1))} 有效</span>${meter(a.usedHours, a.totalHours)}</div>`;
+    else h += `<div class="item"><span class="small muted">特休</span><span class="big">0<small> 小時</small></span>
+      <span class="small muted">${a && a.nextStart ? `${roc(a.nextStart)}起有 3 天` : "請管理者在名單填寫到職日"}</span></div>`;
+    h += `<div class="item"><span class="small muted">補休（${c.year} 年）</span>
+      <span class="big">${c.remainingHours}<small> 小時</small></span>
+      <span class="small muted">加班 ${c.earnedHours} 小時，已休 ${c.usedHours} 小時。${c.year}/12/31 到期</span>${meter(c.usedHours, c.earnedHours)}</div>`;
+    $("bal-forms").innerHTML = h;
+    Object.entries(b.limits).forEach(([k, l]) => {
+      h += `<div class="item"><span class="small muted">${esc(k)}（年上限 ${l.days} 天）</span>
+        <span class="big">${l.used}<small> 小時已請</small></span>${meter(l.used, l.hours)}</div>`;
+    });
+    $("bal-mine").innerHTML = h;
   }
 
   // ---- 打卡 ----
@@ -324,9 +421,10 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
     else if (r.inRange === "是") h += `<span class="muted">${esc(r.site)}</span> `;
     if (r.direct === "符合直接下班") h += '<span class="tag in">符合直接下班</span> ';
     if (r.direct === "不符合（早退）") h += '<span class="tag bad">早退</span> ';
+    if (r.direct === "符合直接前往") h += '<span class="tag in">符合直接前往</span> ';
+    if (r.direct === "不符合（遲到）") h += '<span class="tag bad">遲到</span> ';
     return h;
   }
-
   function locate() {
     return new Promise((res, rej) => {
       if (!navigator.geolocation) return rej(new Error("這支手機的瀏覽器不支援定位"));
@@ -336,7 +434,6 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
         { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
     });
   }
-
   async function doPunch(type) {
     $("btn-in").disabled = $("btn-out").disabled = true;
     msg("punch-msg", "取得定位中…");
@@ -348,24 +445,27 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
         const r = await api("punch", { type, ...loc });
         boot.today.punches.push(r.record); renderToday(boot.today.punches);
         msg("punch-msg", `${type}打卡完成 ${r.record.time}（${chk.nearest}）`, "ok");
-      } else {
-        pendingType = type; pendingLoc = loc; openOutside(chk); msg("punch-msg", "");
-      }
+      } else { pendingType = type; pendingLoc = loc; openOutside(chk); msg("punch-msg", ""); }
     } catch (e) { msg("punch-msg", e.message, "err"); }
     finally { $("btn-in").disabled = $("btn-out").disabled = false; }
   }
   $("btn-in").onclick = () => doPunch("上班");
   $("btn-out").onclick = () => doPunch("下班");
-
   function openOutside(c) {
-    const km = c.distance >= 1000 ? (c.distance/1000).toFixed(1) + " 公里" : c.distance + " 公尺";
-    let h = `<p>你距離最近的院區（${esc(c.nearest)}）約 <b>${km}</b>，超過 ${c.radius} 公尺的打卡範圍。這筆打卡會標記為「範圍外」。</p>`;
+    let h = `<p>目前不在打卡範圍內，這筆打卡會標記為「範圍外」。</p>`;
     if (c.poorAccuracy) h += `<div class="verdict warn">手機回報的定位誤差約 ${c.accuracy} 公尺，位置可能不準。可以到室外或開啟高精確度定位後再試。</div>`;
     if (c.type === "下班") {
       if (c.direct === "下班時間後") h += `<div class="verdict ok">已過下班時間 ${c.end}，可以直接下班。</div>`;
-      else if (c.direct === "符合直接下班") h += `<div class="verdict ok">回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘${c.buffer?`（含緩衝 ${c.buffer} 分）`:""}，預計 ${c.arrival} 才能抵達，晚於下班時間 ${c.end}。<b>符合直接下班</b>，不需補休。</div>`;
-      else if (c.direct === "不符合（早退）") h += `<div class="verdict bad">回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘，預計 ${c.arrival} 抵達，仍早於下班時間 ${c.end}。現在打下班卡會記為<b>早退</b>。</div>`;
+      else if (c.direct === "符合直接下班") h += `<div class="verdict ok">依實際道路，回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘${c.buffer?`（含緩衝 ${c.buffer} 分）`:""}，預計 ${c.arrival} 才能抵達，晚於下班時間 ${c.end}。<b>符合直接下班</b>，不需補休。</div>`;
+      else if (c.direct === "不符合（早退）") h += `<div class="verdict bad">依實際道路，回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘，預計 ${c.arrival} 抵達，仍早於下班時間 ${c.end}。現在打下班卡會記為<b>早退</b>。</div>`;
+      else if (c.direct === "非排定上班日") h += `<div class="verdict warn">今天不是你排定的上班日。</div>`;
       else h += `<div class="verdict warn">暫時算不出回 ${esc(c.homeSite)} 的交通時間，這筆會交由主管判斷。</div>`;
+    } else {
+      if (c.direct === "上班時間前") h += `<div class="verdict ok">還沒到上班時間 ${c.start}，不算遲到。</div>`;
+      else if (c.direct === "符合直接前往") h += `<div class="verdict ok">從 ${esc(c.homeSite)} 過來約需 ${c.travelMin} 分鐘${c.buffer?`（含緩衝 ${c.buffer} 分）`:""}，等同 ${c.depart} 從院區出發，不晚於上班時間 ${c.start}。<b>符合直接前往</b>，不算遲到。</div>`;
+      else if (c.direct === "不符合（遲到）") h += `<div class="verdict bad">從 ${esc(c.homeSite)} 過來約需 ${c.travelMin} 分鐘，等同 ${c.depart} 才從院區出發，晚於上班時間 ${c.start}。扣掉交通時間後記為<b>遲到 ${c.lateMin} 分鐘</b>。</div>`;
+      else if (c.direct === "非排定上班日") h += `<div class="verdict warn">今天不是你排定的上班日。</div>`;
+      else h += `<div class="verdict warn">暫時算不出從 ${esc(c.homeSite)} 過來的交通時間，這筆會交由主管判斷。</div>`;
     }
     $("ov-body").innerHTML = h;
     $("ov-title").textContent = `不在打卡範圍內（${c.type}）`;
@@ -386,9 +486,15 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
     finally { $("ov-ok").disabled = false; }
   };
 
-  // ---- 補登 ----
-  document.querySelectorAll("#mk-type button").forEach(b => b.onclick = () =>
-    document.querySelectorAll("#mk-type button").forEach(x => x.setAttribute("aria-pressed", x === b)));
+  // ---- 申請 ----
+  const segPick = (sel, b) => document.querySelectorAll(sel + " button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  document.querySelectorAll("#form-seg button").forEach(b => b.onclick = () => {
+    segPick("#form-seg", b);
+    ["leave","ot","mk"].forEach(f => $("f-"+f).hidden = f !== b.dataset.f);
+  });
+  document.querySelectorAll("#mk-type button").forEach(b => b.onclick = () => segPick("#mk-type", b));
+  const warnText = (base, w) => w && w.length ? base + "\n提醒：" + w.join("；") : base;
+
   $("btn-makeup").onclick = async () => {
     const type = document.querySelector('#mk-type button[aria-pressed="true"]').dataset.v;
     $("btn-makeup").disabled = true; msg("mk-msg", "送出中…");
@@ -401,7 +507,6 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
     finally { $("btn-makeup").disabled = false; }
   };
 
-  // ---- 請假 ----
   const syncLeave = () => {
     const multi = $("lv-to").value && $("lv-to").value !== $("lv-from").value;
     if (multi) $("lv-all").checked = true;
@@ -417,24 +522,89 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
       const r = await api("leave", { kind: $("lv-kind").value, from: $("lv-from").value, to: $("lv-to").value,
         allDay: $("lv-all").checked, start: $("lv-start").value, end: $("lv-end").value, reason: $("lv-reason").value });
       $("lv-reason").value = "";
-      msg("lv-msg", `已登記 ${r.days} 天、共 ${r.hours} 小時`, "ok");
+      renderBalances(r.balances);
+      msg("lv-msg", warnText(`已登記 ${r.days} 天、共 ${r.hours} 小時`, r.warnings), r.warnings && r.warnings.length ? "warn" : "ok");
     } catch (e) { msg("lv-msg", e.message, "err"); }
     finally { $("btn-leave").disabled = false; }
   };
 
-  // ---- 我的紀錄 ----
+  $("btn-ot").onclick = async () => {
+    $("btn-ot").disabled = true; msg("ot-msg", "送出中…");
+    try {
+      const r = await api("overtime", { date: $("ot-date").value, start: $("ot-start").value, end: $("ot-end").value, brk: $("ot-brk").value, reason: $("ot-reason").value });
+      $("ot-reason").value = "";
+      renderBalances(r.balances);
+      msg("ot-msg", warnText(`已登記加班 ${r.record.hours} 小時，補休剩 ${r.balances.comp.remainingHours} 小時`, r.warnings), r.warnings.length ? "warn" : "ok");
+    } catch (e) { msg("ot-msg", e.message, "err"); }
+    finally { $("btn-ot").disabled = false; }
+  };
+
+  // ---- 排班 ----
+  $("sc-prev").onclick = () => sched && loadSched(addDays(sched.periodStart, -28));
+  $("sc-next").onclick = () => sched && loadSched(addDays(sched.periodStart, 28));
+  async function loadSched(date) {
+    $("sc-days").innerHTML = '<div class="empty">載入中…</div>'; msg("sc-msg", "");
+    try { sched = await api("getSchedule", { date }); renderSched(); }
+    catch (e) { $("sc-days").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  }
+  function renderSched() {
+    $("sc-range").textContent = `${roc(sched.periodStart)} – ${roc(sched.periodEnd)}`;
+    const presets = boot.presets || [];
+    const bad = new Set(sched.check.issues.filter(i => i.level === "error" && i.date).map(i => i.date));
+    $("sc-days").innerHTML = sched.days.map((d, i) => {
+      const pre = presets.find(p => p.start === d.start && p.end === d.end && p.brk === d.brk);
+      return `<div class="sday${i % 7 === 0 ? " weekstart" : ""}${bad.has(d.date) ? " bad" : ""}" data-i="${i}">
+        <div class="d">${roc(d.date)}${d.holiday ? "<small>國定假日</small>" : ""}${i % 7 === 0 ? `<small class="muted" style="color:var(--muted)">第 ${i/7+1} 週</small>` : ""}</div>
+        <div class="ctl">
+          <select aria-label="類型" data-k="type"><option value="">未排</option>${boot.shiftTypes.map(t => `<option${t===d.type?" selected":""}>${t}</option>`).join("")}</select>
+          <select aria-label="班別" data-k="preset" ${d.type==="上班"?"":"hidden"}><option value="">自訂</option>${presets.map((p,j) => `<option value="${j}"${pre===p?" selected":""}>${esc(p.name)} ${p.start}–${p.end}</option>`).join("")}</select>
+          <input type="time" aria-label="上班" data-k="start" value="${esc(d.start)}" ${d.type==="上班"?"":"hidden"}>
+          <input type="time" aria-label="下班" data-k="end" value="${esc(d.end)}" ${d.type==="上班"?"":"hidden"}>
+          <input type="number" min="0" step="5" inputmode="numeric" aria-label="休息分鐘" title="休息分鐘" placeholder="休息分" data-k="brk" value="${d.type==="上班"?esc(d.brk):""}" ${d.type==="上班"?"":"hidden"}>
+        </div></div>`;
+    }).join("");
+    $("sc-days").querySelectorAll(".sday").forEach(row => {
+      const d = sched.days[+row.dataset.i];
+      row.querySelectorAll("[data-k]").forEach(el => el.onchange = () => {
+        const k = el.dataset.k;
+        if (k === "type") { d.type = el.value; if (d.type === "上班" && !d.start && presets[0]) Object.assign(d, { start: presets[0].start, end: presets[0].end, brk: presets[0].brk }); renderSched(); return; }
+        if (k === "preset") { const p = presets[+el.value]; if (p) Object.assign(d, { start: p.start, end: p.end, brk: p.brk }); renderSched(); return; }
+        d[k] = k === "brk" ? (+el.value || 0) : el.value;
+      });
+    });
+    renderCheck(sched.check);
+  }
+  function renderCheck(c) {
+    const head = c.ok ? `<div class="verdict ok">符合 4 週變形工時規定${c.warnings ? `（另有 ${c.warnings} 項提醒）` : ""}</div>`
+                      : `<div class="verdict bad">有 ${c.errors} 項不符規定，請調整後再儲存</div>`;
+    const stats = `<div class="small muted">4 週正常工時 <b class="t">${c.totalHours}</b> / 160 小時　例假 第 1–2 週 ${c.rest1} 天、第 3–4 週 ${c.rest2} 天　例假＋休息日 ${c.off} / 8 天</div>`;
+    const list = c.issues.length ? `<ul class="issues">${c.issues.map(i => `<li class="${i.level}">${i.date ? roc(i.date) + " " : ""}${esc(i.msg)}</li>`).join("")}</ul>` : "";
+    $("sc-result").innerHTML = head + stats + list;
+  }
+  $("sc-save").onclick = async () => {
+    $("sc-save").disabled = true; msg("sc-msg", "儲存中…");
+    try {
+      const r = await api("saveSchedule", { periodStart: sched.periodStart, days: sched.days });
+      sched.check = r.check; renderSched();
+      msg("sc-msg", r.check.ok ? "已儲存，班表符合規定" : "已儲存，但有不符規定的項目，主管會看到", r.check.ok ? "ok" : "warn");
+    } catch (e) { msg("sc-msg", e.message, "err"); }
+    finally { $("sc-save").disabled = false; }
+  };
+
+  // ---- 我的 ----
   $("my-month").onchange = loadMine;
-  function statsHTML(s) {
+  function statsHTML(s, ot) {
     const cell = (v, label, alert) => `<div class="stat${alert && v ? " alert" : ""}"><b>${v}</b><span>${label}</span></div>`;
     return cell(s.workdays, "應出勤日") + cell(s.onTime, "準時日") + cell(s.late, `遲到（共 ${s.lateMin} 分）`, 1) +
       cell(s.early, "早退", 1) + cell(s.leaveCount, `請假（${s.leaveHours} 小時）`) + cell(s.missing, "缺卡", 1) +
-      cell(s.outside, `範圍外（不符 ${s.outsideBad}）`, s.outsideBad) + cell(s.makeup, "補登");
+      cell(s.outside, `範圍外（不符 ${s.outsideBad}）`, s.outsideBad) + cell(s.makeup, "補登") + cell(ot, "加班時數");
   }
   async function loadMine() {
     $("my-days").innerHTML = '<div class="empty">載入中…</div>';
     try {
       const r = await api("myMonth", { month: $("my-month").value });
-      $("my-stats").innerHTML = statsHTML(r.summary);
+      renderBalances(r.balances);
+      $("my-stats").innerHTML = statsHTML(r.summary, r.otHours);
       const days = r.days.filter(d => d.date <= todayStr() && (d.workday || d.in || d.out)).reverse();
       $("my-days").innerHTML = days.length ? days.map(d => {
         const cls = d.status === "準時" ? "in" : d.status === "請假" ? "warn" : d.status === "異常" ? "bad" : "";
@@ -442,10 +612,10 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
           <span class="tag ${cls}">${esc(d.status)}</span> <span class="t">${esc(d.in||"--:--")} → ${esc(d.out||"--:--")}</span>
           ${d.flags.length ? "<br>" + esc(d.flags.join("、")) : ""}</span></div>`; }).join("")
         : '<div class="empty">這個月還沒有紀錄。</div>';
+      $("my-ot").innerHTML = r.overtime.length ? r.overtime.map(o => `<div class="row"><span>${roc(o.date)}</span><span class="t">${esc(o.start)}–${esc(o.end)}</span><span class="note">${o.hours} 小時　${esc(o.reason)}</span></div>`).join("")
+        : '<div class="empty">這個月沒有加班。</div>';
     } catch (e) { $("my-days").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   }
-
-  // ---- 變更密碼 ----
   $("btn-pw").onclick = async () => {
     try {
       const r = await api("changePassword", { oldPassword: $("pw-old").value, newPassword: $("pw-new").value });
@@ -456,36 +626,55 @@ nav.tabs button[aria-current="true"]{color:var(--ink);font-weight:700;border-top
 
   // ---- 管理 ----
   $("ad-month").onchange = loadAdmin;
+  const empty = (n, t) => `<tr><td colspan="${n}" class="muted">${t}</td></tr>`;
   async function loadAdmin() {
-    $("ad-sum").innerHTML = '<tr><td colspan="11" class="muted">載入中…</td></tr>';
+    $("ad-sum").innerHTML = empty(12, "載入中…");
     try {
       const r = await api("report", { month: $("ad-month").value });
       lastReport = r;
       const n = (v, alert) => `<td class="n">${alert && v ? `<span class="alert">${v}</span>` : v}</td>`;
-      $("ad-sum").innerHTML = r.rows.length ? r.rows.map(x => { const s = x.summary; return `<tr><td>${esc(x.name)}</td><td>${esc(x.site)}</td>
+      $("ad-sum").innerHTML = r.rows.length ? r.rows.map(x => { const s = x.summary; return `<tr><td>${esc(x.name)}</td><td>${esc(x.site)}${x.isShift?" <span class='tag'>排班</span>":""}</td>
         ${n(s.workdays)}${n(s.onTime)}${n(s.late ? `${s.late}（${s.lateMin}分）` : 0, 1)}${n(s.early,1)}
-        ${n(s.leaveCount ? `${s.leaveCount}（${s.leaveHours}h）` : 0)}${n(s.missing,1)}${n(s.outside)}${n(s.outsideBad,1)}${n(s.makeup, 1)}</tr>`; }).join("")
-        : '<tr><td colspan="11" class="muted">人員名單是空的。</td></tr>';
+        ${n(s.leaveCount ? `${s.leaveCount}（${s.leaveHours}h）` : 0)}${n(s.missing,1)}${n(s.outside)}${n(s.outsideBad,1)}${n(s.makeup,1)}${n(x.otHours, x.otHours > r.otMonthLimit)}</tr>`; }).join("")
+        : empty(12, "人員名單是空的。");
+
+      $("ad-bal").innerHTML = r.rows.map(x => { const b = x.balances, a = b.annual;
+        return `<tr><td>${esc(x.name)}</td><td class="t">${esc(x.hire || "未填")}</td>
+          <td>${a && !a.none ? `${esc(a.seniority)}（${a.days} 天）` : '<span class="muted">未滿 6 個月或未填到職日</span>'}</td>
+          <td class="n">${a && !a.none ? `${a.remainingHours} h` : "—"}</td><td class="n">${b.comp.remainingHours} h</td>
+          <td class="n">${b.comp.prevYearUnpaid ? `<span class="alert">${b.comp.prevYearUnpaid} h</span>` : 0}</td>
+          <td class="n">${b.used["事假"]||0} h</td><td class="n">${b.used["病假"]||0} h</td></tr>`; }).join("") || empty(8, "—");
+
+      const shiftRows = r.rows.filter(x => x.schedule);
+      $("ad-sched-wrap").hidden = !shiftRows.length;
+      $("ad-sched").innerHTML = shiftRows.map(x => { const c = x.schedule;
+        return `<tr><td>${esc(x.name)}</td><td>${md(c.periodStart)}–${md(c.periodEnd)}</td>
+          <td>${c.ok ? '<span class="tag in">符合</span>' : `<span class="tag bad">${c.errors} 項不符</span>`}</td><td class="n">${c.totalHours} h</td>
+          <td>${esc(c.issues.map(i => (i.date ? md(i.date) + " " : "") + i.msg).join("；")) || "—"}</td></tr>`; }).join("");
+
       const flags = r.rows.flatMap(x => x.days.map(d => ({ ...d, name: x.name }))).sort((a,b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name,"zh-Hant"));
       $("ad-flags").innerHTML = flags.length ? flags.map(d => `<tr><td>${roc(d.date)}</td><td>${esc(d.name)}</td><td class="t">${esc(d.in||"—")}</td><td class="t">${esc(d.out||"—")}</td><td>${esc(d.flags.join("、"))}</td></tr>`).join("")
-        : '<tr><td colspan="5" class="muted">這個月沒有需注意的日子。</td></tr>';
+        : empty(5, "這個月沒有需注意的日子。");
+      $("ad-ot").innerHTML = r.overtime.length ? r.overtime.map(o => `<tr><td>${roc(o.date)}</td><td>${esc(o.name)}</td><td class="t">${esc(o.start)}–${esc(o.end)}${o.brk?`（休 ${o.brk} 分）`:""}</td><td class="n">${o.hours}</td><td>${esc(o.reason)}</td><td class="t small">${esc(o.loggedAt)}</td></tr>`).join("")
+        : empty(6, "沒有加班。");
+      $("ad-leave").innerHTML = r.leaves.length ? r.leaves.map(l => `<tr><td>${roc(l.date)}</td><td>${esc(l.name)}</td><td>${esc(l.kind)}</td><td class="t">${esc(l.start)}–${esc(l.end)}</td><td class="n">${l.hours}</td><td>${esc(l.reason)}</td><td class="t small">${esc(l.loggedAt)}</td></tr>`).join("")
+        : empty(7, "沒有請假。");
       $("ad-makeup").innerHTML = r.makeups.length ? r.makeups.map(m => `<tr><td>${roc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.type)}</td><td class="t">${esc(m.time)}</td><td>${esc(m.reason)}</td><td class="t small">${esc(m.loggedAt)}</td></tr>`).join("")
-        : '<tr><td colspan="6" class="muted">沒有補登。</td></tr>';
+        : empty(6, "沒有補登。");
       $("ad-outside").innerHTML = r.outside.length ? r.outside.map(o => `<tr><td>${roc(o.date)}</td><td>${esc(o.name)}</td><td>${esc(o.type)}</td><td class="t">${esc(o.time)}</td>
         <td>${esc(o.site)} ${o.distance>=1000?(o.distance/1000).toFixed(1)+" km":esc(o.distance)+" m"}</td><td>${o.travel!==""?esc(o.travel)+" 分":"—"}</td>
-        <td>${o.direct?`<span class="tag ${o.direct==="不符合（早退）"?"bad":o.direct==="無法計算交通時間"?"warn":"in"}">${esc(o.direct)}</span>`:"—"}</td><td>${esc(o.reason)}</td></tr>`).join("")
-        : '<tr><td colspan="8" class="muted">沒有範圍外打卡。</td></tr>';
-      $("ad-leave").innerHTML = r.leaves.length ? r.leaves.map(l => `<tr><td>${roc(l.date)}</td><td>${esc(l.name)}</td><td>${esc(l.kind)}</td><td class="t">${esc(l.start)}–${esc(l.end)}</td><td class="n">${l.hours}</td><td>${esc(l.reason)}</td><td class="t small">${esc(l.loggedAt)}</td></tr>`).join("")
-        : '<tr><td colspan="7" class="muted">沒有請假。</td></tr>';
-    } catch (e) { $("ad-sum").innerHTML = `<tr><td colspan="11">${esc(e.message)}</td></tr>`; }
+        <td>${o.direct?`<span class="tag ${o.direct.startsWith("不符合")?"bad":(o.direct==="無法計算交通時間"||o.direct==="非排定上班日")?"warn":"in"}">${esc(o.direct)}</span>`:"—"}</td><td>${esc(o.reason)}</td></tr>`).join("")
+        : empty(8, "沒有範圍外打卡。");
+    } catch (e) { $("ad-sum").innerHTML = empty(12, esc(e.message)); }
   }
 
   $("btn-csv").onclick = () => {
     if (!lastReport) return;
     const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
-    const head = ["姓名","院區","應出勤日","準時日","遲到次數","遲到分鐘","早退次數","請假次數","請假時數","缺卡次數","範圍外次數","範圍外符合","範圍外不符","補登次數"];
-    const lines = [head.map(q).join(",")].concat(lastReport.rows.map(x => { const s = x.summary;
-      return [x.name,x.site,s.workdays,s.onTime,s.late,s.lateMin,s.early,s.leaveCount,s.leaveHours,s.missing,s.outside,s.outsideOk,s.outsideBad,s.makeup].map(q).join(","); }));
+    const head = ["姓名","院區","應出勤日","準時日","遲到次數","遲到分鐘","早退次數","請假次數","請假時數","缺卡次數","範圍外次數","範圍外符合","範圍外不符","補登次數","加班時數","特休剩餘時數","補休剩餘時數","去年補休未休時數"];
+    const lines = [head.map(q).join(",")].concat(lastReport.rows.map(x => { const s = x.summary, b = x.balances;
+      return [x.name,x.site,s.workdays,s.onTime,s.late,s.lateMin,s.early,s.leaveCount,s.leaveHours,s.missing,s.outside,s.outsideOk,s.outsideBad,s.makeup,x.otHours,
+        b.annual && !b.annual.none ? b.annual.remainingHours : "", b.comp.remainingHours, b.comp.prevYearUnpaid].map(q).join(","); }));
     const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `出勤月報_${lastReport.month}.csv`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
