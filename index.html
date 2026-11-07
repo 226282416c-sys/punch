@@ -379,13 +379,18 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
         <div class="field" style="flex:0 1 220px"><label for="ad-month">月份</label><input type="month" id="ad-month"></div>
         <button class="btn ghost" id="btn-csv">匯出月報 CSV</button>
-        <button class="btn ghost" id="btn-csv2">匯出異常明細 CSV</button>
+        <button class="btn ghost" id="btn-csv2">匯出異常明細（Excel）</button>
         <button class="btn" id="btn-confirm">產生出勤確認清單</button>
       </div>
       <div id="confirm-wrap" class="view" hidden>
         <div class="periodbar"><h2 style="margin:0">出勤確認清單</h2><button class="btn ghost" id="btn-copyall">全部複製</button></div>
         <div class="seg" id="cf-fmt" style="max-width:320px"><button aria-pressed="true" data-k="confirmText">新格式</button><button aria-pressed="false" data-k="confirmTextClassic">原格式</button></div>
         <p class="small muted" style="margin:0">每位同事一段，可以直接複製貼到 LINE 或 Email 請本人確認。</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn ghost" id="cf-prev" aria-label="上一位" style="padding:10px 14px">‹</button>
+          <select id="cf-who" aria-label="選擇人員" style="flex:1"></select>
+          <button class="btn ghost" id="cf-next" aria-label="下一位" style="padding:10px 14px">›</button>
+        </div>
         <div id="confirm-list" class="view"></div>
       </div>
       <div>
@@ -400,24 +405,32 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         <thead><tr><th>姓名</th><th>到職日</th><th>特休年度</th><th>特休剩餘</th><th>補休剩餘</th><th>去年補休未休</th><th>事假已請</th><th>病假已請</th></tr></thead>
         <tbody id="ad-bal"></tbody></table></div>
         <p class="small muted">「去年補休未休」依勞基法第 32-1 條應折發工資。特休年度結束未休完的時數，依第 38 條也應發給工資。</p></div>
-      <div id="ad-sched-wrap"><h2>排班（本期與下一期）</h2><div class="tablebox"><table>
-        <thead><tr><th>姓名</th><th>期間</th><th>狀態</th><th>檢核</th><th>4 週工時</th><th>問題</th></tr></thead>
-        <tbody id="ad-sched"></tbody></table></div></div>
-      <div><h2>需注意的日子</h2><div class="tablebox"><table>
-        <thead><tr><th>日期</th><th>姓名</th><th>上班</th><th>下班</th><th>狀況</th></tr></thead>
-        <tbody id="ad-flags"></tbody></table></div></div>
-      <div><h2>加班登記</h2><div class="tablebox"><table>
-        <thead><tr><th>日期</th><th>姓名</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
-        <tbody id="ad-ot"></tbody></table></div></div>
-      <div><h2>請假登記</h2><div class="tablebox"><table>
-        <thead><tr><th>日期</th><th>姓名</th><th>假別</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
-        <tbody id="ad-leave"></tbody></table></div></div>
-      <div><h2>忘打卡補登</h2><div class="tablebox"><table>
-        <thead><tr><th>日期</th><th>姓名</th><th>類型</th><th>時間</th><th>原因</th><th>送出時間</th></tr></thead>
-        <tbody id="ad-makeup"></tbody></table></div></div>
-      <div><h2>範圍外打卡</h2><div class="tablebox"><table>
-        <thead><tr><th>日期</th><th>姓名</th><th>類型</th><th>時間</th><th>直線距離</th><th>交通</th><th>判定</th><th>事由</th></tr></thead>
-        <tbody id="ad-outside"></tbody></table></div></div>
+      <div class="view card" id="ad-person" style="gap:16px">
+        <div class="periodbar" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">個人明細</h2></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn ghost" id="ad-prev" aria-label="上一位" style="padding:10px 14px">‹</button>
+          <select id="ad-who" aria-label="選擇人員" style="flex:1"></select>
+          <button class="btn ghost" id="ad-next" aria-label="下一位" style="padding:10px 14px">›</button>
+        </div>
+        <div id="ad-sched-wrap"><h2>排班（本期與下一期）</h2><div class="tablebox"><table>
+          <thead><tr><th>期間</th><th>狀態</th><th>檢核</th><th>4 週工時</th><th>問題</th></tr></thead>
+          <tbody id="ad-sched"></tbody></table></div></div>
+        <div><h2>需注意的日子</h2><div class="tablebox"><table>
+          <thead><tr><th>日期</th><th>上班</th><th>下班</th><th>狀況</th></tr></thead>
+          <tbody id="ad-flags"></tbody></table></div></div>
+        <div><h2>加班登記</h2><div class="tablebox"><table>
+          <thead><tr><th>日期</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
+          <tbody id="ad-ot"></tbody></table></div></div>
+        <div><h2>請假登記</h2><div class="tablebox"><table>
+          <thead><tr><th>日期</th><th>假別</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
+          <tbody id="ad-leave"></tbody></table></div></div>
+        <div><h2>忘打卡補登</h2><div class="tablebox"><table>
+          <thead><tr><th>日期</th><th>類型</th><th>時間</th><th>原因</th><th>送出時間</th></tr></thead>
+          <tbody id="ad-makeup"></tbody></table></div></div>
+        <div><h2>範圍外打卡</h2><div class="tablebox"><table>
+          <thead><tr><th>日期</th><th>類型</th><th>時間</th><th>直線距離</th><th>交通</th><th>判定</th><th>事由</th></tr></thead>
+          <tbody id="ad-outside"></tbody></table></div></div>
+      </div>
     </section>
   </div>
 </div>
@@ -1255,6 +1268,52 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
   // ---- 管理 ----
   $("ad-month").onchange = loadAdmin;
   const empty = (n, t) => `<tr><td colspan="${n}" class="muted">${t}</td></tr>`;
+  // ---- 管理：個人明細（用選單一次看一個人）----
+  let adIdx = 0, adAccount = "";
+  const adCount = x => x.days.length + (x.anomalies ? x.anomalies.leave.length + x.anomalies.publicLeave.length + x.anomalies.overtime.length : 0);
+  function renderAdminPerson() {
+    const r = lastReport, rows = r.rows;
+    if (!rows.length) { $("ad-person").hidden = true; return; }
+    $("ad-person").hidden = false;
+    adIdx = Math.max(0, Math.min(adIdx, rows.length - 1));
+    const x = rows[adIdx]; adAccount = x.account;
+    $("ad-who").innerHTML = rows.map((p, i) => { const n = p.days.length; return `<option value="${i}"${i === adIdx ? " selected" : ""}>${esc(p.name)}${p.isShift ? "・排班" : ""}${n ? `（需注意 ${n} 天）` : ""}</option>`; }).join("");
+    $("ad-prev").disabled = adIdx === 0; $("ad-next").disabled = adIdx === rows.length - 1;
+    const mine = list => list.filter(o => o.name === x.name);
+
+    $("ad-sched-wrap").hidden = !x.schedules;
+    $("ad-sched").innerHTML = (x.schedules || []).map(c => {
+      const lk = c.lock || {};
+      const st = lk.locked ? `<span class="tag in">已確定</span> <button class="btn ghost" style="padding:4px 10px;font-size:.8rem" data-unlock="${esc(x.account)}|${c.periodStart}">開放修改</button>`
+        : lk.status === "開放修改" ? '<span class="tag warn">已開放修改</span>' : '<span class="tag">草稿</span>';
+      return `<tr><td>${md(c.periodStart)}–${md(c.periodEnd)}</td><td>${st}</td>
+        <td>${c.ok ? '<span class="tag in">符合</span>' : `<span class="tag bad">${c.errors} 項不符</span>`}</td><td class="n">${c.totalHours} h</td>
+        <td>${esc(c.issues.map(i => (i.date ? md(i.date) + " " : "") + i.msg).join("；")) || "—"}</td></tr>`; }).join("");
+    $("ad-sched").querySelectorAll("[data-unlock]").forEach(b => b.onclick = async () => {
+      const [account, periodStart] = b.dataset.unlock.split("|");
+      b.disabled = true; b.textContent = "處理中…";
+      try { await api("unlockSchedule", { account, periodStart }); loadAdmin(); }
+      catch (e) { b.textContent = e.message; }
+    });
+
+    $("ad-flags").innerHTML = x.days.length ? x.days.map(d => `<tr><td>${roc(d.date)}</td><td class="t">${esc(d.in||"—")}</td><td class="t">${esc(d.out||"—")}</td><td>${esc(d.flags.join("、"))}</td></tr>`).join("")
+      : empty(4, "這個月沒有需注意的日子。");
+    const ot = mine(r.overtime), lv = mine(r.leaves), mk = mine(r.makeups), out = mine(r.outside);
+    $("ad-ot").innerHTML = ot.length ? ot.map(o => `<tr><td>${roc(o.date)}</td><td class="t">${esc(o.start)}–${esc(o.end)}</td><td class="n">${o.hours}</td><td>${esc(o.reason)}</td><td class="t small">${esc(o.loggedAt)}</td></tr>`).join("")
+      : empty(5, "沒有加班。");
+    $("ad-leave").innerHTML = lv.length ? lv.map(l => `<tr><td>${roc(l.date)}</td><td>${esc(l.kind)}${l.relation ? "・" + esc(l.relation) : ""}</td><td class="t">${esc(l.start)}–${esc(l.end)}</td><td class="n">${l.hours}</td><td>${esc(l.reason)}</td><td class="t small">${esc(l.loggedAt)}</td></tr>`).join("")
+      : empty(6, "沒有請假。");
+    $("ad-makeup").innerHTML = mk.length ? mk.map(m => `<tr><td>${roc(m.date)}</td><td>${esc(m.type)}</td><td class="t">${esc(m.time)}</td><td>${esc(m.reason)}</td><td class="t small">${esc(m.loggedAt)}</td></tr>`).join("")
+      : empty(5, "沒有補登。");
+    $("ad-outside").innerHTML = out.length ? out.map(o => `<tr><td>${roc(o.date)}</td><td>${esc(o.type)}</td><td class="t">${esc(o.time)}</td>
+      <td>${esc(o.site)} ${o.distance>=1000?(o.distance/1000).toFixed(1)+" km":esc(o.distance)+" m"}</td><td>${o.travel!==""?esc(o.travel)+" 分":"—"}</td>
+      <td>${o.direct?`<span class="tag ${o.direct.startsWith("不符合")?"bad":(o.direct==="無法計算交通時間"||o.direct==="非排定上班日")?"warn":"in"}">${esc(o.direct)}</span>`:"—"}</td><td>${esc(o.reason)}</td></tr>`).join("")
+      : empty(7, "沒有範圍外打卡。");
+  }
+  $("ad-who").onchange = () => { adIdx = +$("ad-who").value; renderAdminPerson(); };
+  $("ad-prev").onclick = () => { adIdx--; renderAdminPerson(); };
+  $("ad-next").onclick = () => { adIdx++; renderAdminPerson(); };
+
   async function loadAdmin() {
     $("ad-sum").innerHTML = empty(12, "載入中…");
     try {
@@ -1273,35 +1332,9 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
           <td class="n">${b.comp.prevYearUnpaid ? `<span class="alert">${b.comp.prevYearUnpaid} h</span>` : 0}</td>
           <td class="n">${b.used["事假"]||0} h</td><td class="n">${b.used["病假"]||0} h</td></tr>`; }).join("") || empty(8, "—");
 
-      const shiftRows = r.rows.filter(x => x.schedules);
-      $("ad-sched-wrap").hidden = !shiftRows.length;
-      $("ad-sched").innerHTML = shiftRows.flatMap(x => x.schedules.map((c, k) => {
-        const lk = c.lock || {};
-        const st = lk.locked ? `<span class="tag in">已確定</span> <button class="btn ghost" style="padding:4px 10px;font-size:.8rem" data-unlock="${esc(x.account)}|${c.periodStart}">開放修改</button>`
-          : lk.status === "開放修改" ? '<span class="tag warn">已開放修改</span>' : '<span class="tag">草稿</span>';
-        return `<tr><td>${k ? "" : esc(x.name)}</td><td>${md(c.periodStart)}–${md(c.periodEnd)}</td><td>${st}</td>
-          <td>${c.ok ? '<span class="tag in">符合</span>' : `<span class="tag bad">${c.errors} 項不符</span>`}</td><td class="n">${c.totalHours} h</td>
-          <td>${esc(c.issues.map(i => (i.date ? md(i.date) + " " : "") + i.msg).join("；")) || "—"}</td></tr>`; })).join("");
-      $("ad-sched").querySelectorAll("[data-unlock]").forEach(b => b.onclick = async () => {
-        const [account, periodStart] = b.dataset.unlock.split("|");
-        b.disabled = true; b.textContent = "處理中…";
-        try { await api("unlockSchedule", { account, periodStart }); loadAdmin(); }
-        catch (e) { b.textContent = e.message; }
-      });
-
-      const flags = r.rows.flatMap(x => x.days.map(d => ({ ...d, name: x.name }))).sort((a,b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name,"zh-Hant"));
-      $("ad-flags").innerHTML = flags.length ? flags.map(d => `<tr><td>${roc(d.date)}</td><td>${esc(d.name)}</td><td class="t">${esc(d.in||"—")}</td><td class="t">${esc(d.out||"—")}</td><td>${esc(d.flags.join("、"))}</td></tr>`).join("")
-        : empty(5, "這個月沒有需注意的日子。");
-      $("ad-ot").innerHTML = r.overtime.length ? r.overtime.map(o => `<tr><td>${roc(o.date)}</td><td>${esc(o.name)}</td><td class="t">${esc(o.start)}–${esc(o.end)}${o.brk?`（休 ${o.brk} 分）`:""}</td><td class="n">${o.hours}</td><td>${esc(o.reason)}</td><td class="t small">${esc(o.loggedAt)}</td></tr>`).join("")
-        : empty(6, "沒有加班。");
-      $("ad-leave").innerHTML = r.leaves.length ? r.leaves.map(l => `<tr><td>${roc(l.date)}</td><td>${esc(l.name)}</td><td>${esc(l.kind)}</td><td class="t">${esc(l.start)}–${esc(l.end)}</td><td class="n">${l.hours}</td><td>${esc(l.reason)}</td><td class="t small">${esc(l.loggedAt)}</td></tr>`).join("")
-        : empty(7, "沒有請假。");
-      $("ad-makeup").innerHTML = r.makeups.length ? r.makeups.map(m => `<tr><td>${roc(m.date)}</td><td>${esc(m.name)}</td><td>${esc(m.type)}</td><td class="t">${esc(m.time)}</td><td>${esc(m.reason)}</td><td class="t small">${esc(m.loggedAt)}</td></tr>`).join("")
-        : empty(6, "沒有補登。");
-      $("ad-outside").innerHTML = r.outside.length ? r.outside.map(o => `<tr><td>${roc(o.date)}</td><td>${esc(o.name)}</td><td>${esc(o.type)}</td><td class="t">${esc(o.time)}</td>
-        <td>${esc(o.site)} ${o.distance>=1000?(o.distance/1000).toFixed(1)+" km":esc(o.distance)+" m"}</td><td>${o.travel!==""?esc(o.travel)+" 分":"—"}</td>
-        <td>${o.direct?`<span class="tag ${o.direct.startsWith("不符合")?"bad":(o.direct==="無法計算交通時間"||o.direct==="非排定上班日")?"warn":"in"}">${esc(o.direct)}</span>`:"—"}</td><td>${esc(o.reason)}</td></tr>`).join("")
-        : empty(8, "沒有範圍外打卡。");
+      const keep = r.rows[adIdx] && adAccount === r.rows[adIdx].account;
+      if (!keep) { const k = r.rows.findIndex(x => x.account === adAccount); adIdx = k >= 0 ? k : Math.max(0, r.rows.findIndex(x => x.days.length > 0)); }
+      renderAdminPerson();
     } catch (e) { $("ad-sum").innerHTML = empty(12, esc(e.message)); }
   }
 
@@ -1311,38 +1344,116 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   };
   const csvq = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+  // ---- 簡易 Excel（.xlsx）產生器：不需外部套件，一個人一個工作表 ----
+  const XLSX_LITE = (() => {
+    const enc = new TextEncoder();
+    const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+    const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+    const now = new Date(), DOSDATE = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    function zip(files) {
+      const parts = [], central = []; let off = 0;
+      files.forEach(f => {
+        const name = enc.encode(f.name), data = typeof f.data === "string" ? enc.encode(f.data) : f.data, crc = crc32(data);
+        const h = new DataView(new ArrayBuffer(30));
+        h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true); h.setUint16(12, DOSDATE, true);
+        h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, name.length, true);
+        parts.push(new Uint8Array(h.buffer), name, data);
+        const c = new DataView(new ArrayBuffer(46));
+        c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(14, DOSDATE, true);
+        c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, name.length, true); c.setUint32(42, off, true);
+        central.push(new Uint8Array(c.buffer), name);
+        off += 30 + name.length + data.length;
+      });
+      const csize = central.reduce((a, b) => a + b.length, 0);
+      const e = new DataView(new ArrayBuffer(22));
+      e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, csize, true); e.setUint32(16, off, true);
+      return new Blob([...parts, ...central, new Uint8Array(e.buffer)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    }
+    const x = v => String(v ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+    const col = n => { let s = ""; n++; while (n) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+    function sheetXML(rows, widths) {
+      const body = rows.map((r, ri) => `<row r="${ri + 1}">` + r.map((v, ci) => {
+        const ref = col(ci) + (ri + 1), st = ri === 0 ? ' s="1"' : "";
+        return typeof v === "number" && isFinite(v) ? `<c r="${ref}"${st}><v>${v}</v></c>` : `<c r="${ref}" t="inlineStr"${st}><is><t xml:space="preserve">${x(v)}</t></is></c>`;
+      }).join("") + "</row>").join("");
+      const cols = widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("");
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${cols}</cols><sheetData>${body}</sheetData></worksheet>`;
+    }
+    function build(sheets) {
+      const used = {};
+      sheets.forEach(sh => { let n = String(sh.name).replace(/[\[\]:*?\/\\]/g, "").slice(0, 28) || "工作表"; let k = n, i = 2; while (used[k]) k = n + "(" + i++ + ")"; used[k] = 1; sh.safe = k; });
+      const files = [
+        { name: "[Content_Types].xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>` + sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("") + `</Types>` },
+        { name: "_rels/.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+        { name: "xl/workbook.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>` + sheets.map((sh, i) => `<sheet name="${x(sh.safe)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("") + `</sheets></workbook>` },
+        { name: "xl/_rels/workbook.xml.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` + sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") + `<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+        { name: "xl/styles.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Microsoft JhengHei"/></font><font><b/><sz val="11"/><name val="Microsoft JhengHei"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE2F0E9"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="2"><xf fontId="0" fillId="0" borderId="0" xfId="0"/><xf fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>` },
+      ].concat(sheets.map((sh, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXML(sh.rows, sh.widths) })));
+      return zip(files);
+    }
+    return { build };
+  })();
+
   $("btn-csv2").onclick = () => {
     if (!lastReport) return;
-    const rows = [["姓名","日期","項目","時間","分鐘或時數","原因或事由","需要處理"]];
-    lastReport.rows.forEach(x => { const a = x.anomalies; if (!a) return;
-      a.late.forEach(i => rows.push([x.name, i.date, "遲到", i.time, i.minutes + " 分", i.reason, i.note]));
-      a.early.forEach(i => rows.push([x.name, i.date, "早退", i.time, i.minutes + " 分", i.reason, i.note]));
-      a.absent.forEach(i => rows.push([x.name, i.date, "曠職", "", "", "", i.note]));
-      a.forgot.forEach(i => rows.push([x.name, i.date, "忘打卡（" + i.which + "）", "", "", "", i.note]));
-      a.makeup.forEach(i => rows.push([x.name, i.date, "補登打卡（" + i.type + "）", i.time, "", i.reason, ""]));
-      a.outside.forEach(i => rows.push([x.name, i.date, "打卡地點異常（" + i.type + "）", i.time, "", i.reason, i.bad ? i.direct + "，請確認" : (i.direct || "")]));
-      a.leave.forEach(i => rows.push([x.name, i.date, "請假（" + i.kind + (i.relation ? "・" + i.relation : "") + "）", i.start + "–" + i.end, i.hours + " 小時", i.reason, ""]));
-      a.publicLeave.forEach(i => rows.push([x.name, i.date, "公假", i.start + "–" + i.end, i.hours + " 小時", i.reason, ""]));
-      a.overtime.forEach(i => rows.push([x.name, i.date, "加班（" + (i.dayKind || "") + "）", i.start + "–" + i.end, i.hours + " 小時", i.reason, ""]));
+    const WDN2 = ["日","一","二","三","四","五","六"];
+    const head = ["日期", "星期", "項目", "時間", "分鐘", "時數", "原因或事由", "需要處理"];
+    const widths = [12, 6, 22, 14, 8, 8, 30, 30];
+    const total = [["姓名", "院區", "遲到次數", "遲到分鐘", "早退次數", "曠職", "忘打卡", "補登", "地點異常", "請假次數", "請假時數", "公假時數", "加班時數"]];
+    const sheets = [];
+    lastReport.rows.forEach(p => {
+      const a = p.anomalies; if (!a) return;
+      const L = [];
+      const add = (d, item, time, min, hrs, reason, todo) => L.push([d, WDN2[wd(d)], item, time || "", min === "" ? "" : min, hrs === "" ? "" : hrs, reason || "", todo || ""]);
+      a.late.forEach(i => add(i.date, "遲到", i.time, i.minutes, "", i.reason, i.note || (i.reason ? "" : "請說明原因")));
+      a.early.forEach(i => add(i.date, "早退", i.time, i.minutes, "", i.reason, i.note || (i.reason ? "" : "請說明原因")));
+      a.absent.forEach(i => add(i.date, "曠職", "", "", "", "", "請補請假單或補登打卡"));
+      a.forgot.forEach(i => add(i.date, "忘打卡（" + i.which + "）", "", "", "", "", "請補登" + i.which + "時間"));
+      a.makeup.forEach(i => add(i.date, "補登打卡（" + i.type + "）", i.time, "", "", i.reason, ""));
+      a.outside.forEach(i => add(i.date, "院外打卡（" + i.type + "）", i.time, "", "", i.reason, i.bad ? i.direct + "，請確認" : (i.direct || "")));
+      a.leave.forEach(i => add(i.date, "請假（" + i.kind + (i.relation ? "・" + i.relation : "") + "）", i.start + "–" + i.end, "", +i.hours, i.reason, ""));
+      a.publicLeave.forEach(i => add(i.date, "公假", i.start + "–" + i.end, "", +i.hours, i.reason, ""));
+      a.overtime.forEach(i => add(i.date, "加班（" + (i.dayKind || "") + "）", i.start + "–" + i.end, "", +i.hours, i.reason, ""));
+      L.sort((m, n) => (m[0] + m[3]).localeCompare(n[0] + n[3]));
+      const sh = L.length ? L : [["本月沒有異常或申請紀錄", "", "", "", "", "", "", ""]];
+      sheets.push({ name: p.name, rows: [head].concat(sh), widths });
+      const sum = l => Math.round(l.reduce((t, i) => t + (+i.hours || 0), 0) * 10) / 10;
+      total.push([p.name, p.site || "", a.late.length, a.late.reduce((t, i) => t + i.minutes, 0), a.early.length, a.absent.length, a.forgot.length,
+        a.makeup.length, a.outside.length, a.leave.length, sum(a.leave), sum(a.publicLeave), sum(a.overtime)]);
     });
-    download(`異常明細_${lastReport.month}.csv`, rows.map(r => r.map(csvq).join(",")));
+    const blob = XLSX_LITE.build([{ name: "總覽", rows: total, widths: [12, 14, 9, 9, 9, 7, 8, 7, 9, 9, 9, 9, 9] }].concat(sheets));
+    const aEl = document.createElement("a"); aEl.href = URL.createObjectURL(blob); aEl.download = `異常明細_${lastReport.month}.xlsx`;
+    document.body.appendChild(aEl); aEl.click(); aEl.remove(); setTimeout(() => URL.revokeObjectURL(aEl.href), 2000);
   };
   let cfKey = "confirmText";
   try { cfKey = localStorage.getItem("pt_cf") || cfKey; } catch {}
+  let cfIdx = 0;
+  const needCount = x => { const a = x.anomalies || {}; return (a.late || []).length + (a.early || []).length + (a.absent || []).length + (a.forgot || []).length + (a.outside || []).filter(o => o.bad).length; };
   function renderConfirm() {
     document.querySelectorAll("#cf-fmt button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === cfKey));
-    $("confirm-list").innerHTML = lastReport.rows.map((x, i) => `<div class="card">
-        <div class="periodbar"><h3>${esc(x.name)}</h3><button class="btn ghost" data-copy="${i}">複製</button></div>
-        <pre style="margin:0;white-space:pre-wrap;font:inherit;font-size:.9rem;line-height:1.7">${esc(x[cfKey])}</pre></div>`).join("");
-    $("confirm-list").querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copyText(lastReport.rows[+b.dataset.copy][cfKey], b));
+    const rows = lastReport.rows;
+    if (!rows.length) { $("confirm-list").innerHTML = '<div class="empty">沒有人員</div>'; return; }
+    cfIdx = Math.max(0, Math.min(cfIdx, rows.length - 1));
+    $("cf-who").innerHTML = rows.map((x, i) => { const n = needCount(x); return `<option value="${i}"${i === cfIdx ? " selected" : ""}>${esc(x.name)}${n ? `（需確認 ${n} 項）` : "（無異常）"}</option>`; }).join("");
+    $("cf-prev").disabled = cfIdx === 0; $("cf-next").disabled = cfIdx === rows.length - 1;
+    const x = rows[cfIdx];
+    $("confirm-list").innerHTML = `<div class="card">
+        <div class="periodbar"><h3>${esc(x.name)}</h3><button class="btn ghost" id="cf-copy">複製</button></div>
+        <pre style="margin:0;white-space:pre-wrap;font:inherit;font-size:.9rem;line-height:1.7">${esc(x[cfKey])}</pre></div>`;
+    $("cf-copy").onclick = () => copyText(x[cfKey], $("cf-copy"));
   }
+  $("cf-who").onchange = () => { cfIdx = +$("cf-who").value; renderConfirm(); };
+  $("cf-prev").onclick = () => { cfIdx--; renderConfirm(); };
+  $("cf-next").onclick = () => { cfIdx++; renderConfirm(); };
   document.querySelectorAll("#cf-fmt button").forEach(b => b.onclick = () => {
     cfKey = b.dataset.k; try { localStorage.setItem("pt_cf", cfKey); } catch {}
     if (lastReport) renderConfirm();
   });
   $("btn-confirm").onclick = () => {
     if (!lastReport) return;
-    $("confirm-wrap").hidden = false; renderConfirm();
+    $("confirm-wrap").hidden = false;
+    const firstNeed = lastReport.rows.findIndex(x => needCount(x) > 0); cfIdx = firstNeed >= 0 ? firstNeed : 0;
+    renderConfirm();
     $("confirm-wrap").scrollIntoView({ behavior: "smooth", block: "start" });
   };
   $("btn-copyall").onclick = () => lastReport && copyText(lastReport.rows.map(x => x[cfKey]).join("\n\n────────\n\n"), $("btn-copyall"));
