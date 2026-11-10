@@ -291,7 +291,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
           <div class="field"><label for="lv-from">開始日期</label><input type="date" id="lv-from"></div>
           <div class="field"><label for="lv-to">結束日期</label><input type="date" id="lv-to"></div>
         </div>
-        <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="lv-all" style="width:auto" checked> 整天</label>
+        <label id="lv-all-wrap" style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="lv-all" style="width:auto" checked> 整天</label>
+        <div class="seg" id="lv-half" hidden><button aria-pressed="true" data-h="">全天</button><button aria-pressed="false" data-h="am">上午半天</button><button aria-pressed="false" data-h="pm">下午半天</button></div>
         <div class="grid2" id="lv-times" hidden>
           <div class="field"><label for="lv-start">開始時間</label><input type="time" id="lv-start" value="08:00"></div>
           <div class="field"><label for="lv-end">結束時間</label><input type="time" id="lv-end" value="12:00"></div>
@@ -541,6 +542,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     const t = todayStr();
     ["mk-date","ot-date"].forEach(id => { $(id).value = t; $(id).max = t; });
     $("lv-from").value = $("lv-to").value = t;
+    syncKind();
     $("my-month").value = $("ad-month").value = t.slice(0,7);
     renderToday(boot.today.punches);
     startGarden();
@@ -994,6 +996,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
 
   const LEAVE_HINT = {
 
+    "特休": "特休以半天為單位，可以請全天、上午半天或下午半天。",
     "事假": "一年合計 14 天（含家庭照顧假），不給薪。",
     "病假": "未住院者一年 30 天內，工資折半發給。",
     "生理假": "每月可請 1 天。",
@@ -1013,17 +1016,25 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
   function syncKind() {
     const k = $("lv-kind").value;
     $("lv-mourn").hidden = k !== "喪假";
+    if (k !== "特休") lvHalf = "";
+    syncLeave();
     const h = k === "喪假" ? mournHint() : LEAVE_HINT[k];
     $("lv-hint").hidden = !h; $("lv-hint").innerHTML = h || "";
   }
   $("lv-kind").addEventListener("change", syncKind);
   $("lv-rel").addEventListener("change", syncKind);
   $("lv-death").addEventListener("change", syncKind);
+  let lvHalf = "";
+  document.querySelectorAll("#lv-half button").forEach(b => b.onclick = () => { lvHalf = b.dataset.h; syncLeave(); });
   const syncLeave = () => {
     const multi = $("lv-to").value && $("lv-to").value !== $("lv-from").value;
-    if (multi) $("lv-all").checked = true;
+    const annual = $("lv-kind").value === "特休";   // 特休只能全天或半天
+    if (multi) { $("lv-all").checked = true; lvHalf = ""; }
     $("lv-all").disabled = multi;
-    $("lv-times").hidden = $("lv-all").checked;
+    $("lv-all-wrap").hidden = annual;
+    $("lv-half").hidden = !annual;
+    document.querySelectorAll("#lv-half button").forEach(b => { b.setAttribute("aria-pressed", b.dataset.h === lvHalf); b.disabled = multi && b.dataset.h !== ""; });
+    $("lv-times").hidden = annual || $("lv-all").checked;
   };
   $("lv-all").onchange = syncLeave;
   $("lv-from").onchange = () => { if (!$("lv-to").value || $("lv-to").value < $("lv-from").value) $("lv-to").value = $("lv-from").value; syncLeave(); };
@@ -1032,7 +1043,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     $("btn-leave").disabled = true; msg("lv-msg", "送出中…");
     try {
       const r = await api("leave", { kind: $("lv-kind").value, from: $("lv-from").value, to: $("lv-to").value,
-        allDay: $("lv-all").checked, start: $("lv-start").value, end: $("lv-end").value, reason: $("lv-reason").value,
+        allDay: $("lv-kind").value === "特休" ? !lvHalf : $("lv-all").checked, half: $("lv-kind").value === "特休" ? lvHalf : "", start: $("lv-start").value, end: $("lv-end").value, reason: $("lv-reason").value,
         relation: $("lv-rel").value, deathDate: $("lv-death").value });
       $("lv-reason").value = "";
       renderBalances(r.balances); syncKind();
@@ -1234,8 +1245,17 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     const lead = (wd(r.days[0].date) + 6) % 7;
     for (let k = 0; k < lead; k++) h += '<div class="blank"></div>';
     r.days.forEach(d => {
-      const [label, cls] = STATUS(d), dd = +d.date.slice(8);
-      const times = d.in || d.out ? `<span class="tm">${esc((d.in || "--").replace("次日 ", ""))}<br>${esc((d.out || "--").replace("次日 ", ""))}</span>` : "";
+      let [label, cls] = STATUS(d);
+      const dd = +d.date.slice(8);
+      let times = d.in || d.out ? `<span class="tm">${esc((d.in || "--").replace("次日 ", ""))}<br>${esc((d.out || "--").replace("次日 ", ""))}</span>` : "";
+      // 未來已請假（或整天請假）的日子：直接顯示假別，例如「特休」「補休」
+      const lv = r.leaves.filter(l => l.date === d.date);
+      if (lv.length && (d.status === "未到" || d.status === "請假")) {
+        const kinds = [...new Set(lv.map(l => l.kind))];
+        label = kinds[0] + (kinds.length > 1 ? "等" : ""); cls = "lv";
+        const hrs = lv.reduce((a, l) => a + (+l.hours || 0), 0), part = lv.length === 1 && lv[0].start && hrs < (mine.balances ? mine.balances.dayHours : 8) - 0.01;
+        times = `<span class="tm">${part ? (lv[0].start < "12:00" ? "上午" : "下午") : "全天"}</span>`;
+      }
       h += `<button class="cell ${cls}${hol[d.date] ? " hol" : ""}${d.date === t ? " today" : ""}${d.date === mySel ? " sel" : ""}" data-d="${d.date}">
         <span class="n">${dd}</span>
         ${hol[d.date] ? `<span class="hn">${esc(hol[d.date])}</span>` : ""}
