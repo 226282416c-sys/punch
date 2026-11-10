@@ -99,6 +99,15 @@ textarea{min-height:80px;resize:vertical}
 .tag{font-size:.76rem;padding:2px 10px;border-radius:999px;font-weight:500;white-space:nowrap;display:inline-block;background:var(--surface-2);color:var(--muted)}
 .tag.in{background:var(--in-soft);color:var(--in)} .tag.out{background:var(--out-soft);color:var(--out)}
 .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.bad{background:var(--bad-soft);color:var(--bad)}
+.badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:3px;border-radius:999px;background:var(--bad);color:#fff;font-size:.7rem;font-weight:700;vertical-align:1px}
+.req{display:grid;gap:6px;padding:12px 14px;border-radius:14px;background:var(--surface-2)}
+.req .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-start}
+.req .top b{font-size:1rem}
+.req .meta{font-size:.82rem;color:var(--muted)}
+.req .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.req .acts input{flex:1;min-width:140px;padding:8px 10px}
+.req .acts .btn{padding:8px 16px;font-size:.88rem}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
 .t{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:600}
 .note{color:var(--muted);font-size:.86rem;min-width:0;overflow-wrap:anywhere}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
@@ -232,6 +241,12 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
 .cell.off .k{background:var(--warn-soft);color:var(--warn)}
 .cell.leave .k{background:var(--line);color:var(--ink)}
 .cell.none .k{border:1px dashed var(--line);color:var(--muted)}
+.lvc{font-size:.6rem;line-height:1.3;padding:2px 4px;border-radius:7px;text-align:center;white-space:nowrap;font-weight:600;background:var(--surface);color:var(--muted);border:1px dashed var(--line)}
+.lvc.pend{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.lvc.ok{background:var(--in);color:#fff;border-color:transparent}
+.lvc.no{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.lvlegend{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.78rem;color:var(--muted)}
+.lvlegend .lvc{font-size:.72rem;padding:1px 8px;border-radius:999px;line-height:1.5}
 .cell.hol .n{color:var(--out)}
 .cell.today{box-shadow:inset 0 0 0 2px var(--in)}
 .cell.bad{box-shadow:inset 0 0 0 2px var(--bad);background:var(--bad-soft)}
@@ -315,8 +330,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
           <div class="field"><label for="lv-end">結束時間</label><input type="time" id="lv-end" value="12:00"></div>
         </div>
         <div class="field"><label for="lv-reason">事由（選填）</label><input id="lv-reason" maxlength="200"></div>
-        <p class="small muted">跨日請假會自動略過非上班日。時數扣除午休。特休與補休會先檢查餘額。</p>
-        <button class="btn" id="btn-leave">送出請假</button>
+        <p class="small muted">跨日請假會自動略過非上班日。時數扣除午休。特休與補休會先檢查餘額。<span id="lv-approver"></span></p>
+        <button class="btn" id="btn-leave">送出請假申請</button>
         <div class="msg" id="lv-msg"></div>
       </div>
 
@@ -344,6 +359,12 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         <button class="btn" id="btn-makeup">送出補登</button>
         <div class="msg" id="mk-msg"></div>
       </div>
+
+      <div class="card" id="my-req-card">
+        <h2>我的請假申請</h2>
+        <div class="view" style="gap:10px" id="my-req"><div class="empty">載入中…</div></div>
+        <p class="small muted" style="margin:0">待審核的假會先扣餘額，核准後才算進出勤；駁回或撤回會把餘額還回來。</p>
+      </div>
     </section>
 
     <!-- 排班 -->
@@ -354,7 +375,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         <button class="btn ghost" id="sc-next" aria-label="下個月">下個月 ›</button>
       </div>
       <div class="verdict" id="sc-lock" hidden></div>
-      <div class="legend"><span style="--c:var(--in-soft)">上班</span><span style="--c:var(--out-soft)">例假</span><span style="--c:var(--warn-soft)">休息日</span><span style="--c:var(--line)">國定假日／休假</span><span style="--c:var(--bad-soft)">不符規定</span></div>
+      <div class="legend"><span style="--c:var(--in-soft)">上班</span><span style="--c:var(--out-soft)">例假</span><span style="--c:var(--warn-soft)">休息日</span><span style="--c:var(--line)">國定假日</span><span style="--c:var(--bad-soft)">不符規定</span></div>
+      <div class="lvlegend">請假：<span class="lvc">未送出</span><span class="lvc pend">待審</span><span class="lvc ok">核准</span><span class="lvc no">駁回</span></div>
       <div class="cal" id="sc-days"><div class="empty" style="grid-column:1/-1">載入中…</div></div>
       <p class="small muted" id="sc-tip" style="margin:0;text-align:center">點日期就能修改當天的班</p>
       <div class="view" id="sc-actions" style="gap:10px">
@@ -394,6 +416,10 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
 
     <!-- 管理 -->
     <section id="v-admin" class="view" hidden>
+      <div class="card" id="rv-card" hidden>
+        <div class="periodbar"><h2 style="margin:0">待審核請假</h2><span class="tag" id="rv-n"></span></div>
+        <div class="view" style="gap:10px" id="rv-list"></div>
+      </div>
       <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
         <div class="field" style="flex:0 1 220px"><label for="ad-month">月份</label><input type="month" id="ad-month"></div>
         <button class="btn ghost" id="btn-csv">匯出月報 CSV</button>
@@ -440,7 +466,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
           <thead><tr><th>日期</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
           <tbody id="ad-ot"></tbody></table></div></div>
         <div><h2>請假登記</h2><div class="tablebox"><table>
-          <thead><tr><th>日期</th><th>假別</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
+          <thead><tr><th>日期</th><th>假別</th><th>時段</th><th>時數</th><th>狀態</th><th>事由</th><th>送出時間</th></tr></thead>
           <tbody id="ad-leave"></tbody></table></div></div>
         <div><h2>忘打卡補登</h2><div class="tablebox"><table>
           <thead><tr><th>日期</th><th>類型</th><th>時間</th><th>原因</th><th>送出時間</th></tr></thead>
@@ -455,7 +481,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
 
 <nav class="tabs" id="tabs" hidden><div class="bar">
   <button data-v="punch" aria-current="true">打卡</button>
-  <button data-v="forms">申請</button>
+  <button data-v="forms" id="tab-forms">申請</button>
   <button data-v="sched" id="tab-sched" hidden>排班</button>
   <button data-v="mine">我的</button>
   <button data-v="admin" id="tab-admin" hidden>管理</button>
@@ -466,8 +492,13 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     <h2 id="sc-ed-title">排班</h2>
     <div class="seg" id="sc-ed-type" style="display:grid;grid-template-columns:repeat(3,1fr);border-radius:18px"></div>
     <div id="sc-ed-work" class="view" style="gap:12px">
-      <label style="margin:0">班別（可以兩個都選，就是全天）</label>
+      <label style="margin:0" id="sc-ed-worklbl">班別（可以兩個都選，就是全天）</label>
       <div class="shiftpick" id="sc-ed-pre"></div>
+    </div>
+    <div id="sc-ed-leave" class="view" style="gap:12px" hidden>
+      <div class="field"><label for="sc-ed-kind">假別</label><select id="sc-ed-kind"></select></div>
+      <div class="seg" id="sc-ed-half"><button data-h="">全天</button><button data-h="am">上午</button><button data-h="pm">下午</button></div>
+      <p class="small muted" style="margin:0">按「確定送出」班表時，會自動送出這天的請假申請給審核人。喪假請到「申請」頁辦理。</p>
     </div>
     <div class="actions"><button class="btn ghost" id="sc-ed-cancel">取消</button><button class="btn" id="sc-ed-ok">套用</button></div>
   </div>
@@ -550,6 +581,10 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       ? (plan.work ? `今日班表 ${plan.start}–${plan.end}` : `今日：${plan.kind}`)
       : `上班時間 ${p.start}–${p.end}（午休 ${p.lunchStart}–${p.lunchEnd}）`;
     $("tab-admin").hidden = !p.isManager;
+    $("lv-approver").textContent = boot.approver ? `送出後由 ${boot.approver} 審核。` : "";
+    if (boot.isReviewer && !p.isManager) $("v-forms").prepend($("rv-card"));   // 不是主管的審核人：在「申請」頁審核
+    setBadge(boot.pendingCount || 0);
+    $("sc-ed-kind").innerHTML = boot.leaveKinds.filter(k => k !== "喪假").map(k => `<option>${esc(k)}</option>`).join("");
     $("tab-sched").hidden = !p.isShift;
     $("lv-kind").innerHTML = boot.leaveKinds.map(k => `<option>${esc(k)}</option>`).join("");
     const groups = {};
@@ -576,7 +611,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.v === v));
     store.set("pt_tab", v);
     if (v === "mine") loadMine();
-    if (v === "admin") loadAdmin();
+    if (v === "admin") { loadAdmin(); loadReview(); }
+    if (v === "forms") { loadMyReq(); if (boot.isReviewer && !boot.profile.isManager) loadReview(); }
     if (v === "sched") loadSched(sched ? sched.month : todayStr().slice(0, 7));
     window.scrollTo(0,0);
   }
@@ -1063,11 +1099,65 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         allDay: $("lv-kind").value === "特休" ? !lvHalf : $("lv-all").checked, half: $("lv-kind").value === "特休" ? lvHalf : "", start: $("lv-start").value, end: $("lv-end").value, reason: $("lv-reason").value,
         relation: $("lv-rel").value, deathDate: $("lv-death").value });
       $("lv-reason").value = "";
-      renderBalances(r.balances); syncKind();
-      msg("lv-msg", warnText(`已登記 ${r.days} 天、共 ${r.hours} 小時`, r.warnings), r.warnings && r.warnings.length ? "warn" : "ok");
+      renderBalances(r.balances); syncKind(); loadMyReq();
+      msg("lv-msg", warnText(`已送出 ${r.days} 天、共 ${r.hours} 小時，等待${r.approver ? " " + r.approver + " " : "主管"}審核`, r.warnings), r.warnings && r.warnings.length ? "warn" : "ok");
     } catch (e) { msg("lv-msg", e.message, "err"); }
     finally { $("btn-leave").disabled = false; }
   };
+
+  // ---- 請假審核 ----
+  const ST_TAG = { "待審核": "warn", "核准": "in", "駁回": "bad", "取消": "" };
+  const stTag = s => `<span class="tag ${ST_TAG[s] ?? ""}">${esc(s === "取消" ? "已撤回" : s)}</span>`;
+  const reqWhen = g => (g.from === g.to ? roc(g.from) : `${roc(g.from)} ～ ${roc(g.to)}`) +
+    (g.days === 1 && g.start ? `　${esc(g.start)}–${esc(g.end)}` : "") + `　共 ${g.hours} 小時`;
+  function setBadge(n) {
+    boot.pendingCount = n;
+    const tab = boot.profile.isManager ? $("tab-admin") : $("tab-forms");
+    const old = tab.querySelector(".badge"); if (old) old.remove();
+    if (n > 0) tab.insertAdjacentHTML("beforeend", `<span class="badge">${n}</span>`);
+  }
+  async function loadMyReq() {
+    try {
+      const r = await api("myLeaves");
+      $("my-req").innerHTML = r.leaves.length ? r.leaves.map(g => `<div class="req">
+        <div class="top"><b>${esc(g.kind)}${g.relation ? "・" + esc(g.relation) : ""}</b>${stTag(g.status)}${g.source === "排班" ? '<span class="tag">排班</span>' : ""}</div>
+        <div class="meta">${reqWhen(g)}${g.reason ? "　" + esc(g.reason) : ""}</div>
+        ${g.reviewer || g.reviewNote ? `<div class="meta">${g.reviewer ? esc(g.reviewer) + " " : ""}${g.reviewedAt ? esc(g.reviewedAt.slice(5, 16).replace("-", "/")) : ""}${g.reviewNote ? "：" + esc(g.reviewNote) : ""}</div>` : ""}
+        ${g.status === "待審核" && g.source !== "排班" ? `<div class="acts"><button class="btn ghost" data-cancel="${esc(g.group)}">撤回</button></div>` : ""}
+      </div>`).join("") : '<div class="empty">最近沒有請假申請。</div>';
+      $("my-req").querySelectorAll("[data-cancel]").forEach(b => b.onclick = async () => {
+        if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "再按一次確認撤回"; return; }
+        b.disabled = true;
+        try { const x = await api("cancelLeave", { group: b.dataset.cancel }); renderBalances(x.balances); loadMyReq(); }
+        catch (e) { b.textContent = e.message; }
+      });
+    } catch (e) { $("my-req").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  }
+  function renderReview(list) {
+    setBadge(list.length);
+    $("rv-card").hidden = !list.length && !boot.isReviewer;
+    $("rv-n").textContent = list.length ? `${list.length} 張` : "";
+    $("rv-list").innerHTML = list.length ? list.map(g => { const b = g.balances, left = g.kind === "特休" && b && b.annual && !b.annual.none ? `特休剩 ${b.annual.remainingHours} h` : g.kind === "補休" && b ? `補休剩 ${b.comp.remainingHours} h` : "";
+      return `<div class="req">
+        <div class="top"><b>${esc(g.name)}</b><span class="tag warn">${esc(g.kind)}${g.relation ? "・" + esc(g.relation) : ""}</span>${g.source === "排班" ? '<span class="tag">排班</span>' : ""}</div>
+        <div class="meta">${reqWhen(g)}</div>
+        <div class="meta">${g.reason ? "事由：" + esc(g.reason) + "　" : ""}${left ? "（已預扣，" + left + "）　" : ""}送出 ${esc(String(g.loggedAt || "").slice(5, 16).replace("-", "/"))}</div>
+        <div class="acts"><input placeholder="備註（選填）" maxlength="200" data-note="${esc(g.group)}">
+          <button class="btn" data-rv="approve" data-g="${esc(g.group)}">核准</button><button class="btn danger" data-rv="reject" data-g="${esc(g.group)}">駁回</button></div>
+      </div>`; }).join("") : '<div class="empty">目前沒有要審核的請假。</div>';
+    $("rv-list").querySelectorAll("[data-rv]").forEach(b => b.onclick = async () => {
+      const g = b.dataset.g, note = $("rv-list").querySelector(`[data-note="${CSS.escape(g)}"]`).value;
+      if (b.dataset.rv === "reject" && b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "確認駁回"; return; }
+      b.closest(".acts").querySelectorAll("button").forEach(x => x.disabled = true);
+      try { const r = await api("reviewLeave", { group: g, decision: b.dataset.rv, note }); renderReview(r.pending); if (!$("v-admin").hidden) loadAdmin(); }
+      catch (e) { b.textContent = e.message; }
+    });
+  }
+  async function loadReview() {
+    if (!boot.isReviewer) return;
+    try { renderReview((await api("pendingLeaves")).pending); }
+    catch (e) { $("rv-card").hidden = false; $("rv-list").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  }
 
   $("btn-ot").onclick = async () => {
     $("btn-ot").disabled = true; msg("ot-msg", "送出中…");
@@ -1089,8 +1179,27 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     try { sched = await api("getSchedule", { month }); renderSched(); }
     catch (e) { $("sc-days").innerHTML = `<div class="empty" style="grid-column:1/-1">${esc(e.message)}</div>`; }
   }
-  const SHORT = { "上班": "上班", "例假": "例假", "休息日": "休息", "國定假日": "國定", "休假": "休假" };
-  const CLS = { "上班": "work", "例假": "rest", "休息日": "off", "國定假日": "leave", "休假": "leave" };
+  const SHORT = { "上班": "上班", "請假": "請假", "例假": "例假", "休息日": "休息", "國定假日": "國定", "休假": "請假" };
+  const CLS = { "上班": "work", "請假": "work", "例假": "rest", "休息日": "off", "國定假日": "leave", "休假": "leave" };
+  const HALFW = { "": "全天", am: "上午", pm: "下午" };
+  // 班表上這天請假的狀態（確定送出後才會有假單）
+  // 這天的請假小標籤：班表上排的請假＋在「申請」頁另外請的假，顏色代表審核狀態
+  const LV_ST = { "待審核": ["pend", "待審"], "核准": ["ok", "核准"], "駁回": ["no", "駁回"] };
+  function leaveChips(d) {
+    const out = [], ls = d.leaves || [];
+    if (d.type === "請假") {
+      const mine = ls.filter(x => x.source === "排班" && x.kind === d.leaveKind);
+      const l = mine.find(x => x.status !== "駁回") || mine[0];   // 駁回後重新送出的以新的為準
+      const [c, w] = l ? LV_ST[l.status] || ["", "未送出"] : ["", "未送出"];
+      out.push(`<span class="lvc ${c}">${esc(d.leaveKind)}${HALFW[d.leaveHalf || ""] === "全天" ? "" : HALFW[d.leaveHalf]}<br>${w}</span>`);
+    }
+    ls.filter(x => !(d.type === "請假" && x.source === "排班" && x.kind === d.leaveKind) && !(x.source === "排班" && x.status === "駁回")).forEach(l => {
+      const [c, w] = LV_ST[l.status] || ["", l.status];
+      const part = l.start && l.end ? (l.end <= "13:00" ? "上午" : l.start >= "12:00" ? "下午" : "") : "";
+      out.push(`<span class="lvc ${c}">${esc(l.kind)}${part}<br>${w}</span>`);
+    });
+    return out.join("");
+  }
   const hh = t => t ? (t.endsWith(":00") ? String(+t.slice(0, 2)) : t) : "";
   function renderSched() {
     const [yy, mm] = sched.month.split("-").map(Number);
@@ -1101,14 +1210,15 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     let h = ["一","二","三","四","五","六","日"].map((w, k) => `<div class="wd${k > 4 ? " we" : ""}">${w}</div>`).join("");
     for (let k = 0; k < lead; k++) h += '<div class="blank"></div>';
     sched.days.forEach((d, i) => {
-      const label = d.type === "上班" ? shiftLabel(d) : (d.type ? SHORT[d.type] : "未排");
+      const work = d.type === "上班" || d.type === "請假";
+      const label = work ? shiftLabel(d) : (d.type ? SHORT[d.type] : "未排");
       const [, m, dd] = d.date.split("-").map(Number);
       const cls = ["cell", d.type ? CLS[d.type] : "none", d.holiday ? "hol" : "", d.date === today ? "today" : "", bad.has(d.date) ? "bad" : ""].join(" ");
       h += `<button class="${cls}" data-i="${i}" aria-label="${roc(d.date)} ${esc(label)}">
         <span class="n">${dd}</span>
         ${d.holidayName ? `<span class="hn" title="${esc(d.holidayName)}">${esc(d.holidayName)}</span>` : d.blockStart ? `<span class="hn" style="color:var(--muted)">4週起</span>` : ""}
         <span class="k">${esc(label)}</span>
-        ${d.type === "上班" ? `<span class="tm">${hh(d.start)}–${hh(d.end)}</span>` : ""}</button>`;
+        ${work ? `<span class="tm">${hh(d.start)}–${hh(d.end)}</span>` : ""}${leaveChips(d)}</button>`;
     });
     $("sc-days").innerHTML = h;
     const lk = sched.lock || {};
@@ -1124,7 +1234,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
   let edIdx = -1, edType = "";
   // 班別組合：選到的班別 → 一天的上下班時間（中間空檔當休息）
   const presetsOf = () => (boot.presets || []).filter(p => p.start && p.end).slice().sort((a, b) => a.start.localeCompare(b.start));
-  const covers = (d, p) => d.type === "上班" && d.start <= p.start && d.end >= p.end;
+  const covers = (d, p) => (d.type === "上班" || d.type === "請假") && d.start <= p.start && d.end >= p.end;
   function combine(sel) {
     if (!sel.length) return null;
     const tm = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
@@ -1139,14 +1249,17 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     if (on.length === 1) return on[0].name.replace(/班$/, "");
     return "上班";
   }
-  let edSel = [];
+  let edSel = [], edHalf = "";
   function openEditor(i) {
     edIdx = i; const d = sched.days[i], ps = presetsOf();
     edType = d.type || "";
     $("sc-ed-title").textContent = roc(d.date) + (d.holidayName ? "・" + d.holidayName : d.holiday ? "・國定假日" : "");
     $("sc-ed-type").innerHTML = boot.shiftTypes.concat([""]).map(t => `<button data-t="${t}" aria-pressed="${t === edType}" style="white-space:nowrap">${t || "未排"}</button>`).join("");
-    $("sc-ed-type").querySelectorAll("button").forEach(b => b.onclick = () => { edType = b.dataset.t; if (edType === "上班" && !edSel.length) edSel = ps.map((_, k) => k); syncEd(); });
-    edSel = d.type === "上班" ? ps.map((p, k) => covers(d, p) ? k : -1).filter(k => k >= 0) : ps.map((_, k) => k);
+    $("sc-ed-type").querySelectorAll("button").forEach(b => b.onclick = () => { edType = b.dataset.t; if ((edType === "上班" || edType === "請假") && !edSel.length) edSel = ps.map((_, k) => k); syncEd(); });
+    edHalf = d.leaveHalf || "";
+    if (d.leaveKind) $("sc-ed-kind").value = d.leaveKind;
+    $("sc-ed-half").querySelectorAll("button").forEach(b => b.onclick = () => { edHalf = b.dataset.h; syncEd(); });
+    edSel = d.type === "上班" || d.type === "請假" ? ps.map((p, k) => covers(d, p) ? k : -1).filter(k => k >= 0) : ps.map((_, k) => k);
     $("sc-ed-pre").innerHTML = ps.map((p, k) => `<button data-k="${k}"><b>${esc(p.name)}</b><small>${p.start}–${p.end}</small></button>`).join("");
     $("sc-ed-pre").querySelectorAll("button").forEach(b => b.onclick = () => {
       const k = +b.dataset.k; edSel = edSel.includes(k) ? edSel.filter(x => x !== k) : edSel.concat(k).sort((a, z) => a - z); syncEd(); });
@@ -1154,15 +1267,22 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
   }
   function syncEd() {
     $("sc-ed-type").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === edType));
-    $("sc-ed-work").hidden = edType !== "上班";
+    $("sc-ed-work").hidden = edType !== "上班" && edType !== "請假";
+    $("sc-ed-leave").hidden = edType !== "請假";
+    $("sc-ed-worklbl").textContent = edType === "請假" ? "原本的班別" : "班別（可以兩個都選，就是全天）";
+    $("sc-ed-half").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.h === edHalf));
     $("sc-ed-pre").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", edSel.includes(+b.dataset.k)));
-    $("sc-ed-ok").disabled = edType === "上班" && !edSel.length;
+    $("sc-ed-ok").disabled = (edType === "上班" || edType === "請假") && !edSel.length;
   }
   $("sc-ed-cancel").onclick = () => { $("sc-ov").hidden = true; };
   $("sc-ed-ok").onclick = () => {
     const d = sched.days[edIdx];
     d.type = edType;
     if (edType === "上班") { const ps = presetsOf(); Object.assign(d, combine(edSel.map(k => ps[k]))); }
+    if (edType === "請假") {   // 請假的日子仍是上班日：保留原本的班別，另外記下假別與時段
+      const ps = presetsOf(); Object.assign(d, combine(edSel.map(k => ps[k])));
+      d.leaveKind = $("sc-ed-kind").value; d.leaveHalf = edHalf;
+    } else { d.leaveKind = ""; d.leaveHalf = ""; }
     $("sc-ov").hidden = true; renderSched();
     msg("sc-msg", "記得按「儲存並檢核」", "warn");
   };
@@ -1270,6 +1390,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       if (lv.length && (d.status === "未到" || d.status === "請假")) {
         const kinds = [...new Set(lv.map(l => l.kind))];
         label = kinds[0] + (kinds.length > 1 ? "等" : ""); cls = "lv";
+        if (lv.every(l => l.status === "待審核")) label += "<small>待審</small>";
         const hrs = lv.reduce((a, l) => a + (+l.hours || 0), 0), part = lv.length === 1 && lv[0].start && hrs < (mine.balances ? mine.balances.dayHours : 8) - 0.01;
         times = `<span class="tm">${part ? (lv[0].start < "12:00" ? "上午" : "下午") : "全天"}</span>`;
       }
@@ -1293,7 +1414,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     if (d.workday && d.expectedStart) h += `<div class="r"><span class="muted">應上班</span><span class="t">${esc(d.expectedStart)}–${esc(d.expectedEnd)}</span></div>`;
     h += ps.length ? ps.map(p => `<div class="r"><span class="tag ${p.type === "上班" ? "in" : "out"}">${p.type}</span><span class="t">${esc(p.time)}</span><span class="note">${badges(p)} ${esc(p.reason)}</span></div>`).join("")
       : `<div class="r muted">${d.date > todayStr() ? "還沒到這一天" : "這天沒有打卡紀錄"}</div>`;
-    lv.forEach(l => { h += `<div class="r"><span class="tag warn">${esc(l.kind)}</span><span class="t">${esc(l.start)}–${esc(l.end)}</span><span class="note">${l.hours} 小時 ${esc(l.reason)}</span></div>`; });
+    lv.forEach(l => { h += `<div class="r"><span class="tag warn">${esc(l.kind)}${l.status && l.status !== "核准" ? "・" + esc(l.status) : ""}</span><span class="t">${esc(l.start)}–${esc(l.end)}</span><span class="note">${l.hours} 小時 ${esc(l.reason)}</span></div>`; });
     if (d.flags.length) h += `<div class="r" style="color:var(--bad)">${esc(d.flags.join("、"))}</div>`;
     if (d.missingIn || d.missingOut) h += `<div class="r small muted">忘記打卡的話，可以到「申請 → 忘打卡」補登。</div>`;
     h += "</div>";
@@ -1346,8 +1467,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     const ot = mine(r.overtime), lv = mine(r.leaves), mk = mine(r.makeups), out = mine(r.outside);
     $("ad-ot").innerHTML = ot.length ? ot.map(o => `<tr><td>${roc(o.date)}</td><td class="t">${esc(o.start)}–${esc(o.end)}</td><td class="n">${o.hours}</td><td>${esc(o.reason)}</td><td class="t small">${esc(o.loggedAt)}</td></tr>`).join("")
       : empty(5, "沒有加班。");
-    $("ad-leave").innerHTML = lv.length ? lv.map(l => `<tr><td>${roc(l.date)}</td><td>${esc(l.kind)}${l.relation ? "・" + esc(l.relation) : ""}</td><td class="t">${esc(l.start)}–${esc(l.end)}</td><td class="n">${l.hours}</td><td>${esc(l.reason)}</td><td class="t small">${esc(l.loggedAt)}</td></tr>`).join("")
-      : empty(6, "沒有請假。");
+    $("ad-leave").innerHTML = lv.length ? lv.map(l => `<tr><td>${roc(l.date)}</td><td>${esc(l.kind)}${l.relation ? "・" + esc(l.relation) : ""}</td><td class="t">${esc(l.start)}–${esc(l.end)}</td><td class="n">${l.hours}</td><td>${stTag(l.status || "核准")}</td><td>${esc(l.reason)}</td><td class="t small">${esc(l.loggedAt)}</td></tr>`).join("")
+      : empty(7, "沒有請假。");
     $("ad-makeup").innerHTML = mk.length ? mk.map(m => `<tr><td>${roc(m.date)}</td><td>${esc(m.type)}</td><td class="t">${esc(m.time)}</td><td>${esc(m.reason)}</td><td class="t small">${esc(m.loggedAt)}</td></tr>`).join("")
       : empty(5, "沒有補登。");
     $("ad-outside").innerHTML = out.length ? out.map(o => `<tr><td>${roc(o.date)}</td><td>${esc(o.type)}</td><td class="t">${esc(o.time)}</td>
