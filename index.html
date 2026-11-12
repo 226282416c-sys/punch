@@ -995,8 +995,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     if (c.poorAccuracy) h += `<div class="verdict warn">手機回報的定位誤差約 ${c.accuracy} 公尺，位置可能不準。可以到室外或開啟高精確度定位後再試。</div>`;
     if (c.type === "下班") {
       if (c.direct === "下班時間後") h += `<div class="verdict ok">已過下班時間 ${c.end}，可以直接下班。</div>`;
-      else if (c.direct === "符合直接下班") h += `<div class="verdict ok">依實際道路，回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘${c.buffer?`（含緩衝 ${c.buffer} 分）`:""}，預計 ${c.arrival} 才能抵達，晚於下班時間 ${c.end}。<b>符合直接下班</b>，不需補休。</div>`;
-      else if (c.direct === "不符合（早退）") h += `<div class="verdict bad">依實際道路，回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘，預計 ${c.arrival} 抵達，仍早於下班時間 ${c.end}。現在打下班卡會記為<b>早退</b>。</div>`;
+      else if (c.direct === "符合直接下班") h += `<div class="verdict ok">回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘${c.buffer?`（含緩衝 ${c.buffer} 分）`:""}，預計 ${c.arrival} 才能抵達，晚於下班時間 ${c.end}。<b>符合直接下班</b>，不需補休。</div>`;
+      else if (c.direct === "不符合（早退）") h += `<div class="verdict bad">回 ${esc(c.homeSite)} 約需 ${c.travelMin} 分鐘，預計 ${c.arrival} 抵達，仍早於下班時間 ${c.end}。現在打下班卡會記為<b>早退</b>。</div>`;
       else if (c.direct === "非排定上班日") h += `<div class="verdict warn">今天不是你排定的上班日。</div>`;
       else h += `<div class="verdict warn">暫時算不出回 ${esc(c.homeSite)} 的交通時間，這筆會交由主管判斷。</div>`;
     } else {
