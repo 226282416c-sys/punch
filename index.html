@@ -241,6 +241,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
 .cell.off .k{background:var(--warn-soft);color:var(--warn)}
 .cell.leave .k{background:var(--line);color:var(--ink)}
 .cell.none .k{border:1px dashed var(--line);color:var(--muted)}
+.cell .tm.lvn{color:var(--warn);font-weight:600}
 .lvc{font-size:.6rem;line-height:1.3;padding:2px 4px;border-radius:7px;text-align:center;white-space:nowrap;font-weight:600;background:var(--surface);color:var(--muted);border:1px dashed var(--line)}
 .lvc.pend{background:var(--warn-soft);color:var(--warn);border-color:transparent}
 .lvc.ok{background:var(--in);color:#fff;border-color:transparent}
@@ -1385,14 +1386,22 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       let [label, cls] = STATUS(d);
       const dd = +d.date.slice(8);
       let times = d.in || d.out ? `<span class="tm">${esc((d.in || "--").replace("次日 ", ""))}<br>${esc((d.out || "--").replace("次日 ", ""))}</span>` : "";
-      // 未來已請假（或整天請假）的日子：直接顯示假別，例如「特休」「補休」
-      const lv = r.leaves.filter(l => l.date === d.date);
-      if (lv.length && (d.status === "未到" || d.status === "請假")) {
+      // 有請假的日子：未來或整天請假 → 直接顯示假別；已過的半天假 → 保留出勤結果，另外加註假別
+      const lv = r.leaves.filter(l => l.date === d.date && l.status !== "駁回" && l.status !== "取消");
+      if (lv.length) {
+        const dayH = mine.balances ? mine.balances.dayHours : 8;
+        const partOf = l => !l.start || +l.hours >= dayH - 0.01 ? "全天" : l.end <= "13:00" ? "上午" : l.start >= "12:00" ? "下午" : `${+l.hours}h`;
         const kinds = [...new Set(lv.map(l => l.kind))];
-        label = kinds[0] + (kinds.length > 1 ? "等" : ""); cls = "lv";
-        if (lv.every(l => l.status === "待審核")) label += "<small>待審</small>";
-        const hrs = lv.reduce((a, l) => a + (+l.hours || 0), 0), part = lv.length === 1 && lv[0].start && hrs < (mine.balances ? mine.balances.dayHours : 8) - 0.01;
-        times = `<span class="tm">${part ? (lv[0].start < "12:00" ? "上午" : "下午") : "全天"}</span>`;
+        const name = kinds.length > 1 ? kinds.map(k => k[0]).join("＋") : kinds[0];          // 特休＋補休 → 特＋補
+        const total = lv.reduce((a, l) => a + (+l.hours || 0), 0);
+        const parts = lv.length === 1 ? partOf(lv[0]) : kinds.length > 1 && total >= dayH - 0.01 ? "各半天" : total >= dayH - 0.01 ? "全天" : lv.map(partOf).join("、");
+        const pend = lv.some(l => l.status === "待審核") ? "<small>待審</small>" : "";
+        if (d.status === "未到" || d.status === "請假") {
+          label = name + pend; cls = "lv";
+          times = `<span class="tm">${parts}</span>`;
+        } else {
+          times += `<span class="tm lvn">${name}${parts === "全天" ? "" : parts}${pend}</span>`;
+        }
       }
       h += `<button class="cell ${cls}${hol[d.date] ? " hol" : ""}${d.date === t ? " today" : ""}${d.date === mySel ? " sel" : ""}" data-d="${d.date}">
         <span class="n">${dd}</span>
