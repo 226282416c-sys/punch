@@ -1389,7 +1389,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       const dd = +d.date.slice(8);
       let times = d.in || d.out ? `<span class="tm">${esc((d.in || "--").replace("次日 ", ""))}<br>${esc((d.out || "--").replace("次日 ", ""))}</span>` : "";
       // 有請假的日子：未來或整天請假 → 直接顯示假別；已過的半天假 → 保留出勤結果，另外加註假別
-      const lv = r.leaves.filter(l => l.date === d.date && l.status !== "駁回" && l.status !== "取消");
+      const lv = r.leaves.filter(l => l.date === d.date && l.status !== "駁回" && l.status !== "取消" && l.start && l.end);   // 沒填時段的是餘額調整，不算請假
       if (lv.length) {
         const dayH = mine.balances ? mine.balances.dayHours : 8;
         const partOf = l => !l.start || +l.hours >= dayH - 0.01 ? "全天" : l.end <= "13:00" ? "上午" : l.start >= "12:00" ? "下午" : `${+l.hours}h`;
@@ -1425,7 +1425,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     if (d.workday && d.expectedStart) h += `<div class="r"><span class="muted">應上班</span><span class="t">${esc(d.expectedStart)}–${esc(d.expectedEnd)}</span></div>`;
     h += ps.length ? ps.map(p => `<div class="r"><span class="tag ${p.type === "上班" ? "in" : "out"}">${p.type}</span><span class="t">${esc(p.time)}</span><span class="note">${badges(p)} ${esc(p.reason)}</span></div>`).join("")
       : `<div class="r muted">${d.date > todayStr() ? "還沒到這一天" : "這天沒有打卡紀錄"}</div>`;
-    lv.forEach(l => { h += `<div class="r"><span class="tag warn">${esc(l.kind)}${l.status && l.status !== "核准" ? "・" + esc(l.status) : ""}</span><span class="t">${esc(l.start)}–${esc(l.end)}</span><span class="note">${l.hours} 小時 ${esc(l.reason)}</span></div>`; });
+    lv.forEach(l => { h += `<div class="r"><span class="tag warn">${esc(l.kind)}${l.start ? (l.status && l.status !== "核准" ? "・" + esc(l.status) : "") : "・餘額調整"}</span><span class="t">${l.start ? esc(l.start) + "–" + esc(l.end) : ""}</span><span class="note">${l.hours} 小時 ${esc(l.reason)}</span></div>`; });
     if (d.flags.length) h += `<div class="r" style="color:var(--bad)">${esc(d.flags.join("、"))}</div>`;
     if (d.missingIn || d.missingOut) h += `<div class="r small muted">忘記打卡的話，可以到「申請 → 忘打卡」補登。</div>`;
     h += "</div>";
@@ -1503,7 +1503,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         : empty(12, "人員名單是空的。");
 
       $("ad-bal").innerHTML = r.rows.map(x => { const b = x.balances, a = b.annual;
-        return `<tr><td>${esc(x.name)}</td><td class="t">${esc(x.hire || "未填")}</td>
+        return `<tr><td>${esc(x.name)}</td><td class="t">${esc(x.hire || "未填")}${x.seniority ? `<br><span class="small muted">年資起算 ${esc(x.seniority)}</span>` : ""}</td>
           <td>${a && !a.none ? `${esc(a.seniority)}（${a.days} 天）` : '<span class="muted">未滿 6 個月或未填到職日</span>'}</td>
           <td class="n">${a && !a.none ? `${a.remainingHours} h` : "—"}</td><td class="n">${b.comp.remainingHours} h</td>
           <td class="n">${b.comp.prevYearUnpaid ? `<span class="alert">${b.comp.prevYearUnpaid} h</span>` : 0}</td>
