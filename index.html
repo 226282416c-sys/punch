@@ -499,7 +499,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     <div id="sc-ed-leave" class="view" style="gap:12px" hidden>
       <div class="field"><label for="sc-ed-kind">假別</label><select id="sc-ed-kind"></select></div>
       <div class="seg" id="sc-ed-half"><button data-h="">全天</button><button data-h="am">上午</button><button data-h="pm">下午</button></div>
-      <p class="small muted" style="margin:0">按「確定送出」班表時，會自動送出這天的請假申請給審核人。喪假請到「申請」頁辦理。</p>
+      <p class="small muted" style="margin:0">按「確定送出」班表時，會自動送出這天的請假申請（審核人是自己的會直接核准）。喪假請到「申請」頁辦理。</p>
     </div>
     <div class="actions"><button class="btn ghost" id="sc-ed-cancel">取消</button><button class="btn" id="sc-ed-ok">套用</button></div>
   </div>
@@ -582,7 +582,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       ? (plan.work ? `今日班表 ${plan.start}–${plan.end}` : `今日：${plan.kind}`)
       : `上班時間 ${p.start}–${p.end}（午休 ${p.lunchStart}–${p.lunchEnd}）`;
     $("tab-admin").hidden = !p.isManager;
-    $("lv-approver").textContent = boot.approver ? `送出後由 ${boot.approver} 審核。` : "";
+    $("lv-approver").textContent = boot.approver === "你自己" ? "送出後直接核准。" : boot.approver ? `送出後由 ${boot.approver} 審核。` : "";
     if (boot.isReviewer && !p.isManager) $("v-forms").prepend($("rv-card"));   // 不是主管的審核人：在「申請」頁審核
     setBadge(boot.pendingCount || 0);
     $("sc-ed-kind").innerHTML = boot.leaveKinds.filter(k => k !== "喪假").map(k => `<option>${esc(k)}</option>`).join("");
@@ -1101,7 +1101,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         relation: $("lv-rel").value, deathDate: $("lv-death").value });
       $("lv-reason").value = "";
       renderBalances(r.balances); syncKind(); loadMyReq();
-      msg("lv-msg", warnText(`已送出 ${r.days} 天、共 ${r.hours} 小時，等待${r.approver ? " " + r.approver + " " : "主管"}審核`, r.warnings), r.warnings && r.warnings.length ? "warn" : "ok");
+      msg("lv-msg", warnText(r.approved ? `已請假 ${r.days} 天、共 ${r.hours} 小時，已核准` : `已送出 ${r.days} 天、共 ${r.hours} 小時，等待${r.approver ? " " + r.approver + " " : "主管"}審核`, r.warnings), r.warnings && r.warnings.length ? "warn" : "ok");
     } catch (e) { msg("lv-msg", e.message, "err"); }
     finally { $("btn-leave").disabled = false; }
   };
@@ -1188,13 +1188,15 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
   const LV_ST = { "待審核": ["pend", "待審"], "核准": ["ok", "核准"], "駁回": ["no", "駁回"] };
   function leaveChips(d) {
     const out = [], ls = d.leaves || [];
+    let used = null;
     if (d.type === "請假") {
-      const mine = ls.filter(x => x.source === "排班" && x.kind === d.leaveKind);
-      const l = mine.find(x => x.status !== "駁回") || mine[0];   // 駁回後重新送出的以新的為準
-      const [c, w] = l ? LV_ST[l.status] || ["", "未送出"] : ["", "未送出"];
+      // 同一天同一種假只顯示一個：優先用班表送出的那張，其次是在「申請」頁請的
+      const same = ls.filter(x => x.kind === d.leaveKind);
+      used = same.find(x => x.source === "排班" && x.status !== "駁回") || same.find(x => x.status !== "駁回") || same[0] || null;
+      const [c, w] = used ? LV_ST[used.status] || ["", "未送出"] : ["", "未送出"];
       out.push(`<span class="lvc ${c}">${esc(d.leaveKind)}${HALFW[d.leaveHalf || ""] === "全天" ? "" : HALFW[d.leaveHalf]}<br>${w}</span>`);
     }
-    ls.filter(x => !(d.type === "請假" && x.source === "排班" && x.kind === d.leaveKind) && !(x.source === "排班" && x.status === "駁回")).forEach(l => {
+    ls.filter(x => x !== used && !(d.type === "請假" && x.kind === d.leaveKind) && !(x.source === "排班" && x.status === "駁回")).forEach(l => {
       const [c, w] = LV_ST[l.status] || ["", l.status];
       const part = l.start && l.end ? (l.end <= "13:00" ? "上午" : l.start >= "12:00" ? "下午" : "") : "";
       out.push(`<span class="lvc ${c}">${esc(l.kind)}${part}<br>${w}</span>`);
