@@ -107,6 +107,7 @@ textarea{min-height:80px;resize:vertical}
 .req .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .req .acts input{flex:1;min-width:140px;padding:8px 10px}
 .req .acts .btn{padding:8px 16px;font-size:.88rem}
+.tag.ot{background:var(--line);color:var(--ink)}
 .btn.danger{background:var(--bad-soft);color:var(--bad)}
 .t{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:600}
 .note{color:var(--muted);font-size:.86rem;min-width:0;overflow-wrap:anywhere}
@@ -351,7 +352,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
           <div class="field"><label for="ot-end">結束</label><input type="time" id="ot-end" value="19:00"></div>
         </div>
         <div class="field"><label for="ot-reason">加班事由（必填）</label><textarea id="ot-reason" maxlength="200" placeholder="例如：個案危機處理、團體延長"></textarea></div>
-        <p class="small muted">加班時數 1:1 自動計入補休，當年度 12/31 前有效。結束時間早於開始時間會視為跨夜。</p>
+        <p class="small muted">加班送出後由審核人核准，核准後 1:1 計入補休，當年度 12/31 前有效。結束時間早於開始時間會視為跨夜。</p>
         <button class="btn" id="btn-ot">送出加班</button>
         <div class="msg" id="ot-msg"></div>
       </div>
@@ -369,9 +370,9 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       </div>
 
       <div class="card" id="my-req-card">
-        <h2>我的請假申請</h2>
+        <h2>我的申請（請假・加班）</h2>
         <div class="view" style="gap:10px" id="my-req"><div class="empty">載入中…</div></div>
-        <p class="small muted" style="margin:0">待審核的假會先扣餘額，核准後才算進出勤；駁回或撤回會把餘額還回來。</p>
+        <p class="small muted" style="margin:0">請假：待審核時會先扣餘額，核准後才算進出勤，駁回或撤回會還回來。加班：核准後才計入補休。</p>
       </div>
     </section>
 
@@ -426,7 +427,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     <!-- 管理 -->
     <section id="v-admin" class="view" hidden>
       <div class="card" id="rv-card" hidden>
-        <div class="periodbar"><h2 style="margin:0">待審核請假</h2><span class="tag" id="rv-n"></span></div>
+        <div class="periodbar"><h2 style="margin:0">待審核（請假・加班）</h2><span class="tag" id="rv-n"></span></div>
         <div class="view" style="gap:10px" id="rv-list"></div>
       </div>
       <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
@@ -472,7 +473,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
           <thead><tr><th>日期</th><th>上班</th><th>下班</th><th>狀況</th></tr></thead>
           <tbody id="ad-flags"></tbody></table></div></div>
         <div><h2>加班登記</h2><div class="tablebox"><table>
-          <thead><tr><th>日期</th><th>時段</th><th>時數</th><th>事由</th><th>送出時間</th></tr></thead>
+          <thead><tr><th>日期</th><th>時段</th><th>時數</th><th>狀態</th><th>事由</th><th>送出時間</th></tr></thead>
           <tbody id="ad-ot"></tbody></table></div></div>
         <div><h2>請假登記</h2><div class="tablebox"><table>
           <thead><tr><th>日期</th><th>假別</th><th>時段</th><th>時數</th><th>狀態</th><th>事由</th><th>送出時間</th></tr></thead>
@@ -1125,46 +1126,67 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     const old = tab.querySelector(".badge"); if (old) old.remove();
     if (n > 0) tab.insertAdjacentHTML("beforeend", `<span class="badge">${n}</span>`);
   }
+  const stamp = x => String(x.loggedAt || "");
+  const reviewLine = g => g.reviewer || g.reviewNote ? `<div class="meta">${g.reviewer ? esc(g.reviewer) + " " : ""}${g.reviewedAt ? esc(g.reviewedAt.slice(5, 16).replace("-", "/")) : ""}${g.reviewNote ? "：" + esc(g.reviewNote) : ""}</div>` : "";
+  const otWhen = o => `${roc(o.date)}　${esc(o.start)}–${esc(o.end)}　共 ${o.hours} 小時`;
   async function loadMyReq() {
     try {
       const r = await api("myLeaves");
-      $("my-req").innerHTML = r.leaves.length ? r.leaves.map(g => `<div class="req">
+      const items = r.leaves.map(g => ({ t: "lv", at: stamp(g), g })).concat((r.overtime || []).map(o => ({ t: "ot", at: stamp(o), g: o })))
+        .sort((a, b) => b.at.localeCompare(a.at));
+      $("my-req").innerHTML = items.length ? items.map(({ t, g }) => t === "lv" ? `<div class="req">
         <div class="top"><b>${esc(g.kind)}${g.relation ? "・" + esc(g.relation) : ""}</b>${stTag(g.status)}${g.source === "排班" ? '<span class="tag">排班</span>' : ""}</div>
-        <div class="meta">${reqWhen(g)}${g.reason ? "　" + esc(g.reason) : ""}</div>
-        ${g.reviewer || g.reviewNote ? `<div class="meta">${g.reviewer ? esc(g.reviewer) + " " : ""}${g.reviewedAt ? esc(g.reviewedAt.slice(5, 16).replace("-", "/")) : ""}${g.reviewNote ? "：" + esc(g.reviewNote) : ""}</div>` : ""}
+        <div class="meta">${reqWhen(g)}${g.reason ? "　" + esc(g.reason) : ""}</div>${reviewLine(g)}
         ${g.status === "待審核" && g.source !== "排班" ? `<div class="acts"><button class="btn ghost" data-cancel="${esc(g.group)}">撤回</button></div>` : ""}
-      </div>`).join("") : '<div class="empty">最近沒有請假申請。</div>';
-      $("my-req").querySelectorAll("[data-cancel]").forEach(b => b.onclick = async () => {
+      </div>` : `<div class="req">
+        <div class="top"><b>加班</b>${stTag(g.status)}</div>
+        <div class="meta">${otWhen(g)}${g.reason ? "　" + esc(g.reason) : ""}</div>${reviewLine(g)}
+        ${g.status === "待審核" ? `<div class="acts"><button class="btn ghost" data-cancel-ot="${esc(g.id)}">撤回</button></div>` : ""}
+      </div>`).join("") : '<div class="empty">最近沒有請假或加班申請。</div>';
+      $("my-req").querySelectorAll("[data-cancel],[data-cancel-ot]").forEach(b => b.onclick = async () => {
         if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "再按一次確認撤回"; return; }
         b.disabled = true;
-        try { const x = await api("cancelLeave", { group: b.dataset.cancel }); renderBalances(x.balances); loadMyReq(); }
-        catch (e) { b.textContent = e.message; }
+        try {
+          const x = b.dataset.cancelOt ? await api("cancelOvertime", { id: b.dataset.cancelOt }) : await api("cancelLeave", { group: b.dataset.cancel });
+          renderBalances(x.balances); loadMyReq();
+        } catch (e) { b.textContent = e.message; }
       });
     } catch (e) { $("my-req").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   }
-  function renderReview(list) {
-    setBadge(list.length);
-    $("rv-card").hidden = !list.length && !boot.isReviewer;
-    $("rv-n").textContent = list.length ? `${list.length} 張` : "";
-    $("rv-list").innerHTML = list.length ? list.map(g => { const b = g.balances, left = g.kind === "特休" && b && b.annual && !b.annual.none ? `特休剩 ${b.annual.remainingHours} h` : g.kind === "補休" && b ? `補休剩 ${b.comp.remainingHours} h` : "";
+  function renderReview(list, ots) {
+    ots = ots || [];
+    const n = list.length + ots.length;
+    setBadge(n);
+    $("rv-card").hidden = !n && !boot.isReviewer;
+    $("rv-n").textContent = n ? `${n} 張` : "";
+    const acts = (key, id) => `<div class="acts"><input placeholder="備註（選填）" maxlength="200" data-note="${key}:${esc(id)}">
+          <button class="btn" data-rv="approve" data-k="${key}" data-g="${esc(id)}">核准</button><button class="btn danger" data-rv="reject" data-k="${key}" data-g="${esc(id)}">駁回</button></div>`;
+    const items = list.map(g => ({ at: stamp(g), html: (() => { const b = g.balances, left = g.kind === "特休" && b && b.annual && !b.annual.none ? `特休剩 ${b.annual.remainingHours} h` : g.kind === "補休" && b ? `補休剩 ${b.comp.remainingHours} h` : "";
       return `<div class="req">
         <div class="top"><b>${esc(g.name)}</b><span class="tag warn">${esc(g.kind)}${g.relation ? "・" + esc(g.relation) : ""}</span>${g.source === "排班" ? '<span class="tag">排班</span>' : ""}</div>
         <div class="meta">${reqWhen(g)}</div>
         <div class="meta">${g.reason ? "事由：" + esc(g.reason) + "　" : ""}${left ? "（已預扣，" + left + "）　" : ""}送出 ${esc(String(g.loggedAt || "").slice(5, 16).replace("-", "/"))}</div>
-        <div class="acts"><input placeholder="備註（選填）" maxlength="200" data-note="${esc(g.group)}">
-          <button class="btn" data-rv="approve" data-g="${esc(g.group)}">核准</button><button class="btn danger" data-rv="reject" data-g="${esc(g.group)}">駁回</button></div>
-      </div>`; }).join("") : '<div class="empty">目前沒有要審核的請假。</div>';
+        ${acts("lv", g.group)}</div>`; })() }))
+      .concat(ots.map(o => ({ at: stamp(o), html: `<div class="req">
+        <div class="top"><b>${esc(o.name)}</b><span class="tag ot">加班</span></div>
+        <div class="meta">${otWhen(o)}</div>
+        <div class="meta">${o.reason ? "事由：" + esc(o.reason) + "　" : ""}${o.balances ? "（目前補休剩 " + o.balances.comp.remainingHours + " h，核准後加 " + o.hours + " h）　" : ""}送出 ${esc(String(o.loggedAt || "").slice(5, 16).replace("-", "/"))}</div>
+        ${acts("ot", o.id)}</div>` })))
+      .sort((a, b) => a.at.localeCompare(b.at));
+    $("rv-list").innerHTML = items.length ? items.map(x => x.html).join("") : '<div class="empty">目前沒有要審核的請假或加班。</div>';
     $("rv-list").querySelectorAll("[data-rv]").forEach(b => b.onclick = async () => {
-      const g = b.dataset.g, note = $("rv-list").querySelector(`[data-note="${CSS.escape(g)}"]`).value;
+      const g = b.dataset.g, k = b.dataset.k, note = $("rv-list").querySelector(`[data-note="${CSS.escape(k + ":" + g)}"]`).value;
       if (b.dataset.rv === "reject" && b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "確認駁回"; return; }
       b.closest(".acts").querySelectorAll("button").forEach(x => x.disabled = true);
-      try { const r = await api("reviewLeave", { group: g, decision: b.dataset.rv, note }); renderReview(r.pending); if (!$("v-admin").hidden) loadAdmin(); }
-      catch (e) { b.textContent = e.message; }
+      try {
+        const r = k === "ot" ? await api("reviewOvertime", { id: g, decision: b.dataset.rv, note }) : await api("reviewLeave", { group: g, decision: b.dataset.rv, note });
+        renderReview(r.pending, r.overtime); if (!$("v-admin").hidden) loadAdmin();
+      } catch (e) { b.textContent = e.message; }
     });
   }
   async function loadReview() {
     if (!boot.isReviewer) return;
-    try { renderReview((await api("pendingLeaves")).pending); }
+    try { const r = await api("pendingLeaves"); renderReview(r.pending, r.overtime); }
     catch (e) { $("rv-card").hidden = false; $("rv-list").innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   }
 
@@ -1174,7 +1196,9 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       const r = await api("overtime", { date: $("ot-date").value, start: $("ot-start").value, end: $("ot-end").value, reason: $("ot-reason").value });
       $("ot-reason").value = "";
       renderBalances(r.balances);
-      msg("ot-msg", warnText(`已登記加班 ${r.record.hours} 小時，補休剩 ${r.balances.comp.remainingHours} 小時`, r.warnings), r.warnings.length ? "warn" : "ok");
+      loadMyReq();
+      msg("ot-msg", warnText(r.approved ? `已登記加班 ${r.record.hours} 小時並核准，補休剩 ${r.balances.comp.remainingHours} 小時`
+        : `已送出加班 ${r.record.hours} 小時，等待${r.approver ? " " + r.approver + " " : "主管"}審核，核准後計入補休`, r.warnings), r.warnings.length ? "warn" : "ok");
     } catch (e) { msg("ot-msg", e.message, "err"); }
     finally { $("btn-ot").disabled = false; }
   };
@@ -1382,7 +1406,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       const t = todayStr();
       mySel = r.month === t.slice(0, 7) ? t : "";
       renderMyCal();
-      $("my-ot").innerHTML = r.overtime.length ? r.overtime.map(o => `<div class="row"><span>${roc(o.date)}</span><span class="t">${esc(o.start)}–${esc(o.end)}</span><span class="note">${o.hours} 小時　${esc(o.reason)}</span></div>`).join("")
+      $("my-ot").innerHTML = r.overtime.length ? r.overtime.map(o => `<div class="row"><span>${roc(o.date)}</span><span class="t">${esc(o.start)}–${esc(o.end)}</span><span class="note">${o.hours} 小時${o.status && o.status !== "核准" ? "（" + esc(o.status) + "）" : ""}　${esc(o.reason)}</span></div>`).join("")
         : '<div class="empty">這個月沒有加班。</div>';
     } catch (e) { $("my-days").innerHTML = `<div class="empty" style="grid-column:1/-1">${esc(e.message)}</div>`; }
   }
@@ -1490,8 +1514,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     $("ad-flags").innerHTML = x.days.length ? x.days.map(d => `<tr><td>${roc(d.date)}</td><td class="t">${esc(d.in||"—")}</td><td class="t">${esc(d.out||"—")}</td><td>${esc(d.flags.join("、"))}</td></tr>`).join("")
       : empty(4, "這個月沒有需注意的日子。");
     const ot = mine(r.overtime), lv = mine(r.leaves), mk = mine(r.makeups), out = mine(r.outside);
-    $("ad-ot").innerHTML = ot.length ? ot.map(o => `<tr><td>${roc(o.date)}</td><td class="t">${esc(o.start)}–${esc(o.end)}</td><td class="n">${o.hours}</td><td>${esc(o.reason)}</td><td class="t small">${esc(o.loggedAt)}</td></tr>`).join("")
-      : empty(5, "沒有加班。");
+    $("ad-ot").innerHTML = ot.length ? ot.map(o => `<tr><td>${roc(o.date)}</td><td class="t">${esc(o.start)}–${esc(o.end)}</td><td class="n">${o.hours}</td><td>${stTag(o.status || "核准")}</td><td>${esc(o.reason)}</td><td class="t small">${esc(o.loggedAt)}</td></tr>`).join("")
+      : empty(6, "沒有加班。");
     $("ad-leave").innerHTML = lv.length ? lv.map(l => `<tr><td>${roc(l.date)}</td><td>${esc(l.kind)}${l.relation ? "・" + esc(l.relation) : ""}</td><td class="t">${esc(l.start)}–${esc(l.end)}</td><td class="n">${l.hours}</td><td>${stTag(l.status || "核准")}</td><td>${esc(l.reason)}</td><td class="t small">${esc(l.loggedAt)}</td></tr>`).join("")
       : empty(7, "沒有請假。");
     $("ad-makeup").innerHTML = mk.length ? mk.map(m => `<tr><td>${roc(m.date)}</td><td>${esc(m.type)}</td><td class="t">${esc(m.time)}</td><td>${esc(m.reason)}</td><td class="t small">${esc(m.loggedAt)}</td></tr>`).join("")
