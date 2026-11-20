@@ -107,6 +107,38 @@ textarea{min-height:80px;resize:vertical}
 .req .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .req .acts input{flex:1;min-width:140px;padding:8px 10px}
 .req .acts .btn{padding:8px 16px;font-size:.88rem}
+.teamday{display:grid;gap:10px}
+.teamday .grp{display:grid;gap:6px}
+.teamday .grp h3{margin:0;font-size:.82rem;color:var(--muted);font-weight:600}
+.teamday .ppl{display:flex;flex-wrap:wrap;gap:6px}
+.teamday .pp{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--surface-2);font-size:.86rem}
+.teamday .pp small{color:var(--muted);font-family:var(--font-num)}
+.teamday .pp.lv{background:var(--warn-soft);color:var(--warn)}
+.teamday .pp.lv.p{background:transparent;outline:1px dashed var(--warn);outline-offset:-1px}
+.teamday .pp.lv small{color:inherit;opacity:.85}
+.teambox{overflow-x:auto;background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:8px 0}
+table.team{min-width:0;width:auto;border-collapse:separate;border-spacing:3px;font-size:.72rem}
+table.team th,table.team td{padding:0;border:0;background:none;text-align:center}
+table.team thead th{font-family:var(--font-num);color:var(--muted);font-weight:600;cursor:pointer;line-height:1.2;padding:2px 0;border-radius:8px;min-width:30px}
+table.team thead th small{display:block;font-size:.62rem;font-weight:500}
+table.team thead th.we{color:var(--out)} table.team thead th.hol{color:var(--bad)}
+table.team thead th.sel{background:var(--in-soft);color:var(--in)}
+table.team td,table.team th{vertical-align:middle}
+table.team .nm{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;padding:0 8px 0 12px;white-space:nowrap;font-size:.84rem;font-weight:600;color:var(--ink)}
+table.team .c{display:grid;place-items:center;width:30px;height:28px;border-radius:8px;font-weight:700;font-size:.68rem;letter-spacing:-.04em}
+table.team .c.w{background:var(--in-soft);color:var(--in)}
+table.team .c.o{color:var(--muted);opacity:.7}
+table.team .c.n{color:var(--muted);border:1px dashed var(--line)}
+table.team .c.lv{background:var(--warn-soft);color:var(--warn)}
+table.team .c.lv.p{background:transparent;outline:1px dashed var(--warn);outline-offset:-1px}
+table.team td.sel .c{box-shadow:0 0 0 2px var(--in-2)}
+.teamlegend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.76rem;color:var(--muted)}
+.teamlegend .c{display:inline-grid;place-items:center;min-width:24px;height:20px;padding:0 4px;border-radius:6px;font-weight:700;font-size:.66rem}
+.teamlegend .c.w{background:var(--in-soft);color:var(--in)} .teamlegend .c.lv{background:var(--warn-soft);color:var(--warn)}
+.teamlegend .c.lv.p{background:transparent;outline:1px dashed var(--warn);outline-offset:-1px} .teamlegend .c.o{color:var(--muted)}
+.subnav{position:sticky;top:8px;z-index:5;box-shadow:var(--shadow)}
+.subnav button{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:2px}
+.subnav .badge{margin-left:2px;min-width:16px;height:16px;font-size:.66rem}
 .tag.ot{background:var(--line);color:var(--ink)}
 .btn.danger{background:var(--bad-soft);color:var(--bad)}
 .t{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:600}
@@ -426,15 +458,29 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
 
     <!-- 管理 -->
     <section id="v-admin" class="view" hidden>
+      <div class="seg subnav" id="ad-tabs" role="tablist"><button data-p="review">待審核</button><button data-p="team">班表</button><button data-p="report">月報</button><button data-p="person">個人</button></div>
+      <div class="field" id="ad-month-wrap" style="max-width:220px"><label for="ad-month">月份</label><input type="month" id="ad-month"></div>
+      <div data-pane="review" class="view">
       <div class="card" id="rv-card" hidden>
         <div class="periodbar"><h2 style="margin:0">待審核（請假・加班）</h2><span class="tag" id="rv-n"></span></div>
         <div class="view" style="gap:10px" id="rv-list"></div>
       </div>
-      <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
-        <div class="field" style="flex:0 1 220px"><label for="ad-month">月份</label><input type="month" id="ad-month"></div>
-        <button class="btn ghost" id="btn-csv">匯出月報 CSV</button>
-        <button class="btn ghost" id="btn-csv2">匯出異常明細（Excel）</button>
+      </div>
+      <div data-pane="team" class="view">
+      <div class="card" id="team-card">
+        <h2 style="margin:0">全員班表</h2>
+        <div class="teamday" id="team-day"><div class="empty">載入中…</div></div>
+        <div class="teambox"><table class="team"><thead id="team-head"></thead><tbody id="team-body"></tbody></table></div>
+        <div class="teamlegend"><span class="c w">班</span>上班（固定班）<span class="c w">全</span><span class="c w">上</span><span class="c w">下</span>排班：全天／上午班／下午班
+          <span class="c lv">特</span>請假（特上＝上午）<span class="c lv p">事</span>待審核<span class="c o">休</span>休息日／例假／國定</div>
+        <p class="small muted" style="margin:0">點上面的日期，可以看那天誰上班、誰請假。</p>
+      </div>
+      </div>
+      <div data-pane="report" class="view">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn" id="btn-confirm">產生出勤確認清單</button>
+        <button class="btn ghost" id="btn-csv2">匯出異常明細（Excel）</button>
+        <button class="btn ghost" id="btn-csv">匯出月報 CSV</button>
       </div>
       <div id="confirm-wrap" class="view" hidden>
         <h2 style="margin:0">出勤確認清單</h2>
@@ -459,6 +505,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         <thead><tr><th>姓名</th><th>到職日</th><th>特休年度</th><th>特休剩餘</th><th>補休剩餘</th><th>去年補休未休</th><th>事假已請</th><th>病假已請</th></tr></thead>
         <tbody id="ad-bal"></tbody></table></div>
         <p class="small muted">「去年補休未休」依勞基法第 32-1 條應折發工資。特休年度結束未休完的時數，依第 38 條也應發給工資。</p></div>
+      </div>
+      <div data-pane="person" class="view">
       <div class="view card" id="ad-person" style="gap:16px">
         <div class="periodbar" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">個人明細</h2></div>
         <div style="display:flex;gap:8px;align-items:center">
@@ -484,6 +532,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         <div><h2>範圍外打卡</h2><div class="tablebox"><table>
           <thead><tr><th>日期</th><th>類型</th><th>時間</th><th>直線距離</th><th>交通</th><th>判定</th><th>事由</th></tr></thead>
           <tbody id="ad-outside"></tbody></table></div></div>
+      </div>
       </div>
     </section>
   </div>
@@ -591,7 +640,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
       ? (plan.work ? `今日班表 ${plan.start}–${plan.end}` : `今日：${plan.kind}`)
       : `上班時間 ${p.start}–${p.end}（午休 ${p.lunchStart}–${p.lunchEnd}）`;
     $("tab-admin").hidden = !p.isManager;
-    $("lv-approver").textContent = boot.approver === "你自己" ? "送出後直接核准。" : boot.approver ? `送出後由 ${boot.approver} 審核。` : "";
+    $("lv-approver").textContent = boot.approver === "你自己" ? "送出後直接核准。" : (boot.approver ? `送出後由 ${boot.approver} 審核。` : "") + (boot.autoRule ? boot.autoRule : "");
     if (boot.isReviewer && !p.isManager) $("v-forms").prepend($("rv-card"));   // 不是主管的審核人：在「申請」頁審核
     setBadge(boot.pendingCount || 0);
     $("sc-ed-kind").innerHTML = boot.leaveKinds.filter(k => k !== "喪假").map(k => `<option>${esc(k)}</option>`).join("");
@@ -621,7 +670,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.v === v));
     store.set("pt_tab", v);
     if (v === "mine") loadMine();
-    if (v === "admin") { loadAdmin(); loadReview(); }
+    if (v === "admin") { if (!adPane) showPane(defaultPane()); loadAdmin(); loadReview(); }
     if (v === "forms") { loadMyReq(); if (boot.isReviewer && !boot.profile.isManager) loadReview(); }
     if (v === "sched") loadSched(sched ? sched.month : todayStr().slice(0, 7));
     window.scrollTo(0,0);
@@ -1110,7 +1159,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
         relation: $("lv-rel").value, deathDate: $("lv-death").value });
       $("lv-reason").value = "";
       renderBalances(r.balances); syncKind(); loadMyReq();
-      msg("lv-msg", warnText(r.approved ? `已請假 ${r.days} 天、共 ${r.hours} 小時，已核准` : `已送出 ${r.days} 天、共 ${r.hours} 小時，等待${r.approver ? " " + r.approver + " " : "主管"}審核`, r.warnings), r.warnings && r.warnings.length ? "warn" : "ok");
+      msg("lv-msg", warnText(r.autoApproved ? `已請假 ${r.days} 天、共 ${r.hours} 小時，提前申請已自動核准` : r.approved ? `已請假 ${r.days} 天、共 ${r.hours} 小時，已核准` : `已送出 ${r.days} 天、共 ${r.hours} 小時，等待${r.approver ? " " + r.approver + " " : "主管"}審核`, r.warnings), r.warnings && r.warnings.length ? "warn" : "ok");
     } catch (e) { msg("lv-msg", e.message, "err"); }
     finally { $("btn-leave").disabled = false; }
   };
@@ -1125,6 +1174,8 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     const tab = boot.profile.isManager ? $("tab-admin") : $("tab-forms");
     const old = tab.querySelector(".badge"); if (old) old.remove();
     if (n > 0) tab.insertAdjacentHTML("beforeend", `<span class="badge">${n}</span>`);
+    const sub = $("ad-tabs").querySelector('[data-p="review"]'), ob = sub.querySelector(".badge"); if (ob) ob.remove();
+    if (n > 0) sub.insertAdjacentHTML("beforeend", `<span class="badge">${n}</span>`);
   }
   const stamp = x => String(x.loggedAt || "");
   const reviewLine = g => g.reviewer || g.reviewNote ? `<div class="meta">${g.reviewer ? esc(g.reviewer) + " " : ""}${g.reviewedAt ? esc(g.reviewedAt.slice(5, 16).replace("-", "/")) : ""}${g.reviewNote ? "：" + esc(g.reviewNote) : ""}</div>` : "";
@@ -1157,7 +1208,7 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
     ots = ots || [];
     const n = list.length + ots.length;
     setBadge(n);
-    $("rv-card").hidden = !n && !boot.isReviewer;
+    $("rv-card").hidden = !n && !boot.isReviewer && !boot.profile.isManager;
     $("rv-n").textContent = n ? `${n} 張` : "";
     const acts = (key, id) => `<div class="acts"><input placeholder="備註（選填）" maxlength="200" data-note="${key}:${esc(id)}">
           <button class="btn" data-rv="approve" data-k="${key}" data-g="${esc(id)}">核准</button><button class="btn danger" data-rv="reject" data-k="${key}" data-g="${esc(id)}">駁回</button></div>`;
@@ -1529,7 +1580,78 @@ nav.tabs button[aria-current="true"]{background:var(--in-soft);color:var(--in);f
   $("ad-prev").onclick = () => { adIdx--; renderAdminPerson(); };
   $("ad-next").onclick = () => { adIdx++; renderAdminPerson(); };
 
+  // ---- 管理頁子分頁：待審核／班表／月報／個人 ----
+  let adPane = "";
+  function showPane(name) {
+    adPane = name;
+    document.querySelectorAll("#v-admin [data-pane]").forEach(x => x.hidden = x.dataset.pane !== name);
+    $("ad-tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === name));
+    $("ad-month-wrap").hidden = name === "review";
+    try { localStorage.setItem("pt_adpane", name); } catch (e) {}
+    if (name === "team") { const th = $("team-head").querySelector("th.sel"); if (th) th.scrollIntoView({ block: "nearest", inline: "center" }); }
+  }
+  $("ad-tabs").querySelectorAll("button").forEach(b => b.onclick = () => { showPane(b.dataset.p); window.scrollTo({ top: 0 }); });
+  function defaultPane() {
+    if (boot.pendingCount > 0) return "review";
+    let v = ""; try { v = localStorage.getItem("pt_adpane") || ""; } catch (e) {}
+    return ["review", "team", "report", "person"].indexOf(v) >= 0 ? v : "team";
+  }
+
+  // ---- 全員班表 ----
+  let team = null, teamSel = "";
+  const TWD = "日一二三四五六";
+  const OFF = { "例假": "例", "休息日": "休", "國定假日": "國", "未排班": "?" };
+  function teamCell(c) {
+    if (c.lv && c.lv.length) {
+      const kinds = [...new Set(c.lv.map(l => l.kind[0] + l.part))];
+      const p = c.lv.every(l => l.status === "待審核") ? " p" : "";
+      return `<span class="c lv${p}">${esc(kinds.length > 1 ? kinds.map(k => k[0]).join("") : kinds[0])}</span>`;
+    }
+    if (c.w) return `<span class="c w">${esc(c.code)}</span>`;
+    return `<span class="c ${c.k === "未排班" ? "n" : "o"}">${esc(OFF[c.k] || "休")}</span>`;
+  }
+  function renderTeamDay() {
+    if (!team) return;
+    const i = team.days.findIndex(d => d.date === teamSel);
+    if (i < 0) return;
+    const d = team.days[i], work = [], leave = [], off = [], none = [];
+    team.people.forEach(p => {
+      const c = p.cells[i];
+      if (c.lv) c.lv.forEach(l => leave.push(`<span class="pp lv${l.status === "待審核" ? " p" : ""}">${esc(p.name)}<small>${esc(l.kind)}${l.part ? (l.part === "上" ? "上午" : l.part === "下" ? "下午" : l.part) : "全天"}${l.status === "待審核" ? "・待審" : ""}</small></span>`));
+      const fullLeave = c.lv && c.lv.reduce((a, l) => a + l.hours, 0) >= 7.99;
+      if (c.w && !fullLeave) {
+        // 請半天假：只列實際在班的時段
+        let t = c.t; const [ws, we] = String(c.t).split("–");
+        (c.lv || []).forEach(l => { if (l.part === "上") t = `${l.end === "12:00" ? "13:00" : l.end}–${we}`; else if (l.part === "下") t = `${ws}–${l.start === "13:00" ? "12:00" : l.start}`; else if (l.part) t += `（請 ${l.part}）`; });
+        work.push(`<span class="pp">${esc(p.name)}<small>${esc(t)}</small></span>`);
+      }
+      else if (!c.w && c.k === "未排班") none.push(`<span class="pp">${esc(p.name)}</span>`);
+      else if (!c.w) off.push(`<span class="pp">${esc(p.name)}</span>`);
+    });
+    const wd = TWD[new Date(d.date + "T00:00:00").getDay()];
+    const grp = (t, a, e) => `<div class="grp"><h3>${t}（${a.length}）</h3><div class="ppl">${a.length ? a.join("") : `<span class="small muted">${e}</span>`}</div></div>`;
+    $("team-day").innerHTML = `<div class="periodbar"><b>${roc(d.date)}${d.name ? "　" + esc(d.name) : ""}</b></div>` +
+      grp("上班", work, "沒有人上班") + grp("請假", leave, "沒有人請假") + (off.length ? grp("休息", off, "") : "") + (none.length ? grp("還沒排班", none, "") : "");
+    document.querySelectorAll("#team-head th[data-i], #team-body td[data-i]").forEach(x => x.classList.toggle("sel", x.dataset.i == i));
+  }
+  async function loadTeam() {
+    $("team-day").innerHTML = '<div class="empty">載入中…</div>';
+    try {
+      team = await api("team", { month: $("ad-month").value });
+      $("team-head").innerHTML = `<tr><th class="nm"></th>${team.days.map((d, i) => { const w = new Date(d.date + "T00:00:00").getDay();
+        return `<th data-i="${i}" class="${d.holiday ? "hol" : w === 0 || w === 6 ? "we" : ""}" title="${esc(d.name)}">${+d.date.slice(8)}<small>${TWD[w]}</small></th>`; }).join("")}</tr>`;
+      $("team-body").innerHTML = team.people.map(p => `<tr><td class="nm">${esc(p.name)}</td>${p.cells.map((c, i) => `<td data-i="${i}" title="${esc(c.t || c.k)}">${teamCell(c)}</td>`).join("")}</tr>`).join("");
+      $("team-head").querySelectorAll("th[data-i]").forEach(th => th.onclick = () => { teamSel = team.days[+th.dataset.i].date; renderTeamDay(); });
+      $("team-body").querySelectorAll("td[data-i]").forEach(td => td.onclick = () => { teamSel = team.days[+td.dataset.i].date; renderTeamDay(); });
+      const today = (boot.today && boot.today.date) || new Date().toISOString().slice(0, 10);
+      if (!team.days.some(d => d.date === teamSel)) teamSel = team.days.some(d => d.date === today) ? today : team.days[0].date;
+      renderTeamDay();
+      const th = $("team-head").querySelector("th.sel"); if (th) th.scrollIntoView({ block: "nearest", inline: "center" });
+    } catch (e) { $("team-day").innerHTML = `<div class="empty">${esc(e.message)}</div>`; $("team-head").innerHTML = $("team-body").innerHTML = ""; }
+  }
+
   async function loadAdmin() {
+    loadTeam();
     $("ad-sum").innerHTML = empty(12, "載入中…");
     try {
       const r = await api("report", { month: $("ad-month").value });
